@@ -5,6 +5,7 @@ let islandConnections = [];
 let topColors = [];
 let islandCircles = [];
 
+
 let rectX = 100;
 let rectY = 200;
 let rectW = 1440;
@@ -949,6 +950,35 @@ function draw() {
         continue;
       }
 
+      if (conn.phase === 4 && frameCounter >= conn.startFrame) {
+        const drawDuration = 60;
+        const fadeDuration = 30;
+      
+        const elapsed = frameCounter - conn.startFrame;
+      
+        let alpha = 255;
+        if (elapsed > drawDuration) {
+          const fadeProgress = constrain((elapsed - drawDuration) / fadeDuration, 0, 1);
+          alpha = lerp(255, 0, fadeProgress);
+          if (fadeProgress === 1) continue; 
+        }
+      
+        let progress = constrain(elapsed / drawDuration, 0, 1);
+      
+        let x1 = conn.top.x;
+        let y1 = conn.top.y;
+        let x2 = lerp(x1, conn.bottom.x, progress);
+        let y2 = lerp(y1, conn.bottom.y, progress);
+      
+        colorMode(RGB);
+        const c = topColors[conn.topGroup];
+        stroke(red(c), green(c), blue(c), alpha);
+        line(x1, y1, x2, y2);
+        colorMode(HSL, 360, 100, 100);
+        continue;
+      }
+      
+
       let alpha = 255;
       const isAsian = asianGroups.has(conn.top.name);
       const isMixedBlack = conn.top.name === "Mixed Black";
@@ -994,20 +1024,34 @@ function draw() {
 
     for (let conn of islandConnections) {
       if (frameCounter >= conn.startFrame) {
-        let progress = constrain((frameCounter - conn.startFrame) / 60, 0, 1);
+        const drawDuration = 60;
+        const fadeDelay = 15; // 多等一點才開始淡出
+        const fadeDuration = 45; // 比直線久
+    
+        const elapsed = frameCounter - conn.startFrame;
+        const fadeStart = drawDuration + fadeDelay;
+        let alpha = 255;
+        if (elapsed > fadeStart) {
+          const fadeProgress = constrain((elapsed - drawDuration) / fadeDuration, 0, 1);
+          alpha = lerp(255, 0, fadeProgress);
+          // if (fadeProgress === 1) continue;
+        }
+    
+        let progress = constrain(elapsed / drawDuration, 0, 1);
+    
         let x1 = conn.top.x;
         let y1 = conn.top.y;
         let x2 = conn.bottom.x;
         let y2 = conn.bottom.y;
-
+    
         let cp1x = lerp(x1, x2, 0.3);
         let cp1y = lerp(y1, y2, 0.3) - 60;
         let cp2x = lerp(x1, x2, 0.7);
         let cp2y = lerp(y1, y2, 0.7) - 60;
-
+    
         colorMode(RGB);
         const c = conn.lineColor ?? color(0);
-        stroke(red(c), green(c), blue(c), 255);
+        stroke(red(c), green(c), blue(c), alpha);
         noFill();
         const steps = 30;
         for (let i = 0; i < steps * progress; i++) {
@@ -1019,8 +1063,10 @@ function draw() {
           let py2 = bezierPoint(y1, cp1y, cp2y, y2, t2);
           line(px1, py1, px2, py2);
         }
+        colorMode(HSL, 360, 100, 100);
       }
     }
+    
   }
 
   let currentQuote = "";
