@@ -13,7 +13,7 @@ let titleH = 20;
 
 let frameCounter = 0;
 const phase1StartFrame = 0;
-const phase1EndFrame = 800;
+const phase1EndFrame = 600;
 
 const phase2StartFrame = phase1EndFrame + 40;
 const phase2EndFrame = phase2StartFrame + 2800;
@@ -178,7 +178,7 @@ const secondGroups = {
   ],
   Vietnamese: [1980, 1990, 2000, 2010, 2020],
   "Asian Indian": [1980, 1990, 2000, 2010, 2020],
-  "Other Asian": [2000, 2010, 2020],
+  // "Other Asian": [2000, 2010, 2020],
 };
 
 const secondGroupsByYears = {
@@ -323,11 +323,9 @@ function setup() {
   }
 
   // Phase 1
-  let delay1 = 0;
   for (let i = 0; i < topCircles.length; i++) {
     const topPt = topCircles[i];
     const years = firstGroups[topPt.name] ?? [];
-    const groupStart = 30 + delay1 * 24;
     for (let year of years) {
       const bottomPt = bottomCircles.find((b) => b.year === year);
       if (bottomPt) {
@@ -335,12 +333,11 @@ function setup() {
           top: topPt,
           bottom: bottomPt,
           topGroup: i,
-          startFrame: groupStart,
+          startFrame: phase1StartFrame, // 所有都一樣
           phase: 1,
         });
       }
     }
-    delay1++;
   }
 
   // Phase 2（依年份逐年畫完）
@@ -780,12 +777,31 @@ function draw() {
     if (frameCounter >= conn.startFrame) {
       let progress = constrain((frameCounter - conn.startFrame) / 60, 0, 1);
       let x1, y1, x2, y2;
-
+    
       if (conn.phase === 1) {
         x1 = conn.top.x;
         y1 = conn.top.y;
         x2 = conn.bottom.x;
         y2 = conn.bottom.y;
+      
+        const fadeInDuration = 60;
+        const holdDuration = 600;
+        const totalDuration = fadeInDuration + holdDuration;
+      
+        const elapsed = frameCounter - conn.startFrame;
+        if (elapsed > totalDuration) continue; // 🔹 超過顯示時間，直接不畫
+      
+        let alpha = 255;
+        if (elapsed < fadeInDuration) {
+          alpha = (elapsed / fadeInDuration) * 255; // 🔹 fade in
+        }
+      
+        colorMode(RGB);
+        const c = topColors[conn.topGroup];
+        stroke(red(c), green(c), blue(c), alpha);
+        line(x1, y1, x2, y2);
+        colorMode(HSL, 360, 100, 100);
+        continue;
       } else if (conn.phase === 2) {
         x1 = conn.bottom.x;
         y1 = conn.bottom.y;
@@ -797,11 +813,16 @@ function draw() {
         x2 = lerp(x1, conn.bottom.x, progress);
         y2 = lerp(y1, conn.bottom.y, progress);
       }
-
+    
       let alpha = 255;
       const isAsian = asianGroups.has(conn.top.name);
       const isMixedBlack = conn.top.name === "Mixed Black";
-
+    
+      // 🔽 phase 1 fade-in alpha
+      if (conn.phase === 1) {
+        alpha = progress * 255;
+      }
+    
       if (
         conn.phase === 2 &&
         fadedYears.has(conn.bottom.year) &&
@@ -815,13 +836,14 @@ function draw() {
       ) {
         alpha = 150;
       }
-
+    
       colorMode(RGB);
       const c = topColors[conn.topGroup];
       stroke(red(c), green(c), blue(c), alpha);
       line(x1, y1, x2, y2);
       colorMode(HSL, 360, 100, 100);
     }
+    
   }
 
   // Phase 4 島嶼連線
