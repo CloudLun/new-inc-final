@@ -18,7 +18,7 @@ const phase1EndFrame = 600;
 const phase2StartFrame = phase1EndFrame + 40;
 const phase2EndFrame = phase2StartFrame + 2800;
 
-const phase3StartFrame = phase2EndFrame+ 40;
+const phase3StartFrame = phase2EndFrame + 40;
 const phase3EndFrame = phase3StartFrame + 1000;
 
 const phase4StartFrame = phase3EndFrame + 40;
@@ -341,13 +341,13 @@ function setup() {
   }
 
   // Phase 2（依年份逐年畫完）
-  const connectionDurationPhase2 = 30;
-  let totalFrame = 0;
+  const animationPerYear = 60;
+  const pauseBetweenYears = 20;
 
+  let totalFrame = 0;
   const yearsSorted = Object.keys(secondGroupsByYears)
     .map(Number)
     .sort((a, b) => a - b);
-
   for (const year of yearsSorted) {
     const groupNames = secondGroupsByYears[year];
     const bottomPt = bottomCircles.find((b) => b.year === year);
@@ -357,20 +357,18 @@ function setup() {
 
     for (let i = 0; i < topCircles.length; i++) {
       const topPt = topCircles[i];
-      const groupIndex = groupNames.indexOf(topPt.name);
-      if (groupIndex !== -1) {
-        const connStart = yearStart + connectionDurationPhase2 * groupIndex*0.6; // make each race start drawing not after the end of the previous one
+      if (groupNames.includes(topPt.name)) {
         connections.push({
           top: topPt,
           bottom: bottomPt,
           topGroup: i,
-          startFrame: connStart,
+          startFrame: yearStart,
           phase: 2,
         });
       }
     }
 
-    totalFrame += groupNames.length * connectionDurationPhase2;
+    totalFrame += animationPerYear + pauseBetweenYears;
   }
 
   // ✅ Phase 3 修改版：Mexican 優先，族群之間有頓點
@@ -618,7 +616,7 @@ function draw() {
     textStyle(NORMAL); // 字體細
     textFont("sans-serif"); // 確保是乾淨字體
     textAlign(LEFT, BOTTOM);
-    text(currentTitle, rectX+30, rectY - 40); // 左上角位置
+    text(currentTitle, rectX + 30, rectY - 40); // 左上角位置
   }
 
   const asianGroups = new Set([
@@ -777,23 +775,50 @@ function draw() {
     if (frameCounter >= conn.startFrame) {
       let progress = constrain((frameCounter - conn.startFrame) / 60, 0, 1);
       let x1, y1, x2, y2;
-    
+
       if (conn.phase === 1) {
         x1 = conn.top.x;
         y1 = conn.top.y;
         x2 = conn.bottom.x;
         y2 = conn.bottom.y;
-      
+
         const fadeInDuration = 60;
         const holdDuration = 600;
         const totalDuration = fadeInDuration + holdDuration;
-      
+
         const elapsed = frameCounter - conn.startFrame;
         if (elapsed > totalDuration) continue; // 🔹 超過顯示時間，直接不畫
-      
+
         let alpha = 255;
         if (elapsed < fadeInDuration) {
           alpha = (elapsed / fadeInDuration) * 255; // 🔹 fade in
+        }
+
+        colorMode(RGB);
+        const c = topColors[conn.topGroup];
+        stroke(red(c), green(c), blue(c), alpha);
+        line(x1, y1, x2, y2);
+        colorMode(HSL, 360, 100, 100);
+        continue;
+      } else if (conn.phase === 2) {
+        const yearDuration = 60;
+        const fadeStart = yearDuration;
+        const fadeDuration = 60;
+      
+        const elapsed = frameCounter - conn.startFrame;
+      
+        if (elapsed < 0) continue;
+      
+        let progress = constrain(elapsed / yearDuration, 0, 1);
+        let x1 = conn.bottom.x;
+        let y1 = conn.bottom.y;
+        let x2 = lerp(x1, conn.top.x, progress);
+        let y2 = lerp(y1, conn.top.y, progress);
+      
+        let alpha = 255;
+        if (elapsed >= fadeStart) {
+          const fadeProgress = constrain((elapsed - fadeStart) / fadeDuration, 0, 1);
+          alpha = lerp(255, 30, fadeProgress);
         }
       
         colorMode(RGB);
@@ -802,27 +827,17 @@ function draw() {
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
-      } else if (conn.phase === 2) {
-        x1 = conn.bottom.x;
-        y1 = conn.bottom.y;
-        x2 = lerp(x1, conn.top.x, progress);
-        y2 = lerp(y1, conn.top.y, progress);
-      } else {
-        x1 = conn.top.x;
-        y1 = conn.top.y;
-        x2 = lerp(x1, conn.bottom.x, progress);
-        y2 = lerp(y1, conn.bottom.y, progress);
       }
-    
+
       let alpha = 255;
       const isAsian = asianGroups.has(conn.top.name);
       const isMixedBlack = conn.top.name === "Mixed Black";
-    
+
       // 🔽 phase 1 fade-in alpha
       if (conn.phase === 1) {
         alpha = progress * 255;
       }
-    
+
       if (
         conn.phase === 2 &&
         fadedYears.has(conn.bottom.year) &&
@@ -836,14 +851,13 @@ function draw() {
       ) {
         alpha = 150;
       }
-    
+
       colorMode(RGB);
       const c = topColors[conn.topGroup];
       stroke(red(c), green(c), blue(c), alpha);
       line(x1, y1, x2, y2);
       colorMode(HSL, 360, 100, 100);
     }
-    
   }
 
   // Phase 4 島嶼連線
@@ -923,7 +937,7 @@ function draw() {
     textAlign(LEFT, TOP);
 
     const quoteBoxWidth = 700; // 換行寬度上限
-    text(currentQuote, rectX+30, rectY + rectH + 30, quoteBoxWidth);
+    text(currentQuote, rectX + 30, rectY + rectH + 30, quoteBoxWidth);
   }
 
   frameCounter++;
