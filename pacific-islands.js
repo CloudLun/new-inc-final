@@ -16,7 +16,7 @@ const phase1StartFrame = 0;
 const phase1EndFrame = 600;
 
 const phase2StartFrame = phase1EndFrame + 40;
-const phase2EndFrame = phase2StartFrame + 2800;
+const phase2EndFrame = phase2StartFrame + 1000;
 
 const phase3StartFrame = phase2EndFrame + 40;
 const phase3EndFrame = phase3StartFrame + 1000;
@@ -162,6 +162,7 @@ const firstGroups = {
 };
 
 const secondGroups = {
+  Black: [],
   "Mixed Black": [1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920],
   Chinese: [
     1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950, 1960, 1970,
@@ -218,7 +219,7 @@ const secondGroupsByYears = {
     "Philippino",
     "Vietnamese",
     "Asian Indian",
-    "Other Asian",
+    // "Other Asian",
   ],
   2010: [
     "Chinese",
@@ -227,7 +228,7 @@ const secondGroupsByYears = {
     "Philippino",
     "Vietnamese",
     "Asian Indian",
-    "Other Asian",
+    // "Other Asian",
   ],
   2020: [
     "Chinese",
@@ -236,7 +237,7 @@ const secondGroupsByYears = {
     "Philippino",
     "Vietnamese",
     "Asian Indian",
-    "Other Asian",
+    // "Other Asian",
   ],
 };
 
@@ -341,13 +342,16 @@ function setup() {
   }
 
   // Phase 2（依年份逐年畫完）
+
   const animationPerYear = 60;
   const pauseBetweenYears = 20;
-
   let totalFrame = 0;
+
+  // 🔹 1. 原本亞洲與 Mixed Black 的連線
   const yearsSorted = Object.keys(secondGroupsByYears)
     .map(Number)
     .sort((a, b) => a - b);
+
   for (const year of yearsSorted) {
     const groupNames = secondGroupsByYears[year];
     const bottomPt = bottomCircles.find((b) => b.year === year);
@@ -369,6 +373,98 @@ function setup() {
     }
 
     totalFrame += animationPerYear + pauseBetweenYears;
+  }
+
+  // 🔸 2. Mixed Black 右側額外 5 點（透明圓），塞進 spacing 範圍內
+  const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
+  const spacing = (rectW - 60) / (ethnics.length - 1);
+  mixedExtraCircles = []; // ⬅️ global 變數
+  const mixedExtraConnections = [];
+
+  if (baseMixed) {
+    const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
+    const baseBlack = topCircles.find((t) => t.name === "Black");
+    
+    mixedExtraCircles = [];
+    const mixedExtraConnections = [];
+    
+    if (baseMixed && baseBlack) {
+      const x1 = baseMixed.x;
+      const x2 = baseBlack.x;
+      const baseY = baseMixed.y;
+    
+      const fixedColors = ["#FF5F59", "#FF6A6B", "#FF767D", "#FF818F"];
+      const count = fixedColors.length;
+      const tMin = 0.2;
+      const tMax = 0.8;
+      
+      for (let i = 0; i < count; i++) {
+        const t = map(i, 0, count - 1, tMin, tMax);
+        const x = lerp(baseMixed.x, baseBlack.x, t);
+        const y = baseMixed.y;
+        const c = color(fixedColors[i]);
+        const pt = { x, y, name: "MixedBlackExtra-" + i, alpha: 0 };
+        mixedExtraCircles.push({ pt, color: c });
+      }
+    
+      // 下面這段保留你原本的連線邏輯不變
+      const mixedYears = [
+        1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920,
+        1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020
+      ];
+      totalFrame = 0;
+    
+      for (let year of mixedYears) {
+        const bottomPt = bottomCircles.find((b) => b.year === year);
+        if (!bottomPt) continue;
+    
+        const yearStart = phase2StartFrame + totalFrame;
+    
+        for (const { pt, color } of mixedExtraCircles) {
+          mixedExtraConnections.push({
+            top: pt,
+            bottom: bottomPt,
+            topGroup: -1,
+            customColor: color,
+            startFrame: yearStart,
+            phase: 2,
+          });
+        }
+    
+        totalFrame += animationPerYear + pauseBetweenYears;
+      }
+    
+      connections.push(...mixedExtraConnections);
+    }
+    
+
+    // 🔸 連接到 Mixed Black 相同年份
+    const mixedYears = [1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920,1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+    if (mixedYears) {
+      totalFrame = 0; // reset 時間
+
+      for (let year of mixedYears) {
+        const bottomPt = bottomCircles.find((b) => b.year === year);
+        if (!bottomPt) continue;
+
+        const yearStart = phase2StartFrame + totalFrame;
+
+        for (const { pt, color } of mixedExtraCircles) {
+          mixedExtraConnections.push({
+            top: pt,
+            bottom: bottomPt,
+            topGroup: -1,
+            customColor: color,
+            startFrame: yearStart,
+            phase: 2,
+          });
+        }
+
+        totalFrame += animationPerYear + pauseBetweenYears;
+      }
+    }
+
+    connections.push(...mixedExtraConnections);
   }
 
   // ✅ Phase 3 修改版：Mexican 優先，族群之間有頓點
@@ -436,7 +532,7 @@ function setup() {
   const duration = 60;
   const pause = 30;
   islandConnections.length = 0;
-  connections = connections.filter((c) => c.phase !== 4);
+  // connections = connections.filter((c) => c.phase !== 4);
 
   islandGroupTriples.forEach((triple, i) => {
     const baseFrame = phase4StartFrame + i * (duration + pause);
@@ -620,6 +716,7 @@ function draw() {
   }
 
   const asianGroups = new Set([
+    "Black",
     "Chinese",
     "Japanese",
     "Hindu",
@@ -627,7 +724,7 @@ function draw() {
     "Philippino",
     "Vietnamese",
     "Asian Indian",
-    "Other Asian",
+    // "Other Asian",
   ]);
 
   const isPhase2 =
@@ -772,6 +869,25 @@ function draw() {
       continue;
     }
 
+    if (conn.phase === 3 && frameCounter >= conn.startFrame) {
+      let elapsed = frameCounter - conn.startFrame;
+      let progress = constrain(elapsed / 60, 0, 1); // 60 為動畫時長
+  
+      let x1 = conn.bottom.x;
+      let y1 = conn.bottom.y;
+      let x2 = lerp(x1, conn.top.x, progress);
+      let y2 = lerp(y1, conn.top.y, progress);
+  
+      let alpha = lerp(0, 255, progress); // 淡入透明度
+  
+      colorMode(RGB);
+      const c = topColors[conn.topGroup];
+      stroke(red(c), green(c), blue(c), alpha);
+      line(x1, y1, x2, y2);
+      colorMode(HSL, 360, 100, 100);
+      continue;
+    }
+
     if (frameCounter >= conn.startFrame) {
       let progress = constrain((frameCounter - conn.startFrame) / 60, 0, 1);
       let x1, y1, x2, y2;
@@ -800,29 +916,33 @@ function draw() {
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
-      } else if (conn.phase === 2) {
+      } else if (conn.phase === 2 ) {
         const yearDuration = 60;
         const fadeStart = yearDuration;
         const fadeDuration = 60;
-      
+
         const elapsed = frameCounter - conn.startFrame;
-      
+
         if (elapsed < 0) continue;
-      
+
         let progress = constrain(elapsed / yearDuration, 0, 1);
         let x1 = conn.bottom.x;
         let y1 = conn.bottom.y;
         let x2 = lerp(x1, conn.top.x, progress);
         let y2 = lerp(y1, conn.top.y, progress);
-      
+
         let alpha = 255;
         if (elapsed >= fadeStart) {
-          const fadeProgress = constrain((elapsed - fadeStart) / fadeDuration, 0, 1);
-          alpha = lerp(255, 30, fadeProgress);
+          const fadeProgress = constrain(
+            (elapsed - fadeStart) / fadeDuration,
+            0,
+            1
+          );
+          alpha = lerp(255, 0, fadeProgress);
         }
-      
+
         colorMode(RGB);
-        const c = topColors[conn.topGroup];
+        const c = conn.customColor ?? topColors[conn.topGroup];
         stroke(red(c), green(c), blue(c), alpha);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
