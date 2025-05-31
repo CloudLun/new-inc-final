@@ -6,7 +6,7 @@ let topColors = [];
 let islandCircles = [];
 
 let rectX = 100;
-let rectY = 100;
+let rectY = 200;
 let rectW = 1440;
 let rectH = 340;
 let titleH = 20;
@@ -34,21 +34,21 @@ const phaseTitles = {
   phase2:
     "Why are the Asian categories based on countries, while black and mixed-black categories are based on blackness?",
   phase3:
-    "How can invisible borders determine your identity?Is it possible to disentangle culture and heritage from ethnicity?",
+    "How can invisible borders determine your identity? Is it possible to disentangle culture and heritage from ethnicity?",
   phase4: "Why are people who aren’t in the States included in the Census?",
   phase5: "What is otherness?",
 };
 const phaseQuote = {
   phase1:
-    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi From Thicker than Blood: How Racial Statistics Lie (2001)",
+    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi from Thicker than Blood: How Racial Statistics Lie (2001)",
   phase2:
-    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki From “The Racial Triangulation of Asian Americans” (1999)",
+    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki from “The Racial Triangulation of Asian Americans” (1999)",
   phase3:
-    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez From “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
+    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez from “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
   phase4:
     "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
   phase5:
-    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar From “Locating Migration: Rescaling Cities and Migrants” (2009)",
+    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar from “Locating Migration: Rescaling Cities and Migrants” (2009)",
 };
 
 const ethnics = [
@@ -344,7 +344,7 @@ function setup() {
   }
 
   // Phase 2（依年份逐年畫完）
-  const connectionDurationPhase2 = 40;
+  const connectionDurationPhase2 = 30;
   let totalFrame = 0;
 
   const yearsSorted = Object.keys(secondGroupsByYears)
@@ -362,7 +362,7 @@ function setup() {
       const topPt = topCircles[i];
       const groupIndex = groupNames.indexOf(topPt.name);
       if (groupIndex !== -1) {
-        const connStart = yearStart + connectionDurationPhase2 * groupIndex;
+        const connStart = yearStart + connectionDurationPhase2 * groupIndex*0.6; // make each race start drawing not after the end of the previous one
         connections.push({
           top: topPt,
           bottom: bottomPt,
@@ -583,7 +583,7 @@ function setup() {
 }
 
 function draw() {
-  background(255);
+  background(0);
   noFill();
   stroke(0);
   rect(rectX, rectY, rectW, rectH);
@@ -616,12 +616,12 @@ function draw() {
 
   if (currentTitle) {
     noStroke();
-    fill(0);
-    textSize(24); // 比預設小一點
+    fill(255);
+    textSize(16); // 比預設小一點
     textStyle(NORMAL); // 字體細
     textFont("sans-serif"); // 確保是乾淨字體
     textAlign(LEFT, BOTTOM);
-    text(currentTitle, rectX, rectY - 10); // 左上角位置
+    text(currentTitle, rectX+30, rectY - 40); // 左上角位置
   }
 
   const asianGroups = new Set([
@@ -664,18 +664,18 @@ function draw() {
     if (visible) {
       fill(topColors[i]);
       noStroke();
-      ellipse(pt.x, pt.y, 10);
-      fill(0);
+      ellipse(pt.x, pt.y, 8);
+      fill(255);
       textAlign(CENTER, BOTTOM);
-      textSize(10);
+      textSize(8);
       text(pt.name, pt.x, pt.y - 10);
     }
   }
 
   for (let pt of bottomCircles) {
-    fill(0);
+    fill(255);
     noStroke();
-    ellipse(pt.x, pt.y, 10);
+    ellipse(pt.x, pt.y, 5);
     textAlign(CENTER, TOP);
     textSize(10);
     text(pt.year, pt.x, pt.y + 6);
@@ -711,7 +711,7 @@ function draw() {
     if (allFinished) fadedYears.add(year);
   }
 
-  strokeWeight(2);
+  strokeWeight(0.9);
   for (let conn of connections) {
     if (
       (conn.phase === 1 && frameCounter > phase1EndFrame) ||
@@ -807,13 +807,13 @@ function draw() {
         fadedYears.has(conn.bottom.year) &&
         (isAsian || isMixedBlack)
       ) {
-        alpha = 60;
+        alpha = 150;
       } else if (
         conn.phase === 2 &&
         isAsian &&
         mixedBlackDrawnYears.has(conn.bottom.year)
       ) {
-        alpha = 60;
+        alpha = 150;
       }
 
       colorMode(RGB);
@@ -894,14 +894,14 @@ function draw() {
 
   if (currentQuote) {
     noStroke();
-    fill(40); // 比純黑淡一些
+    fill(255); // 比純黑淡一些
     textSize(12);
-    textStyle(BOLD);
+    textStyle(ITALIC);
     textFont("sans-serif");
     textAlign(LEFT, TOP);
 
     const quoteBoxWidth = 700; // 換行寬度上限
-    text(currentQuote, rectX, rectY + rectH + 30, quoteBoxWidth);
+    text(currentQuote, rectX+30, rectY + rectH + 30, quoteBoxWidth);
   }
 
   frameCounter++;
