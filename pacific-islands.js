@@ -263,21 +263,21 @@ const fourthGroups = {
 };
 
 const islandGroups = [
-  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 830, y: 30 },
+  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 980, y: 30 },
   {
     label: "Guam",
     groups: ["Guamanian", "Guamanian or Chamorro"],
-    x: 680,
+    x: 830,
     y: 40,
   },
   {
     label: "Northern Mariana",
     groups: ["Guamanian or Chamorro"],
-    x: 630,
-    y: 20,
+    x: 780,
+    y: 25,
   },
-  { label: "American Samoa", groups: ["Samoan"], x: 750, y: 60 },
-  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 800, y: 40 },
+  { label: "American Samoa", groups: ["Samoan"], x: 900, y: 60 },
+  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 950, y: 40 },
 ];
 
 const fifthGroup = {
