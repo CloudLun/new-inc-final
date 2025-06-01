@@ -335,21 +335,21 @@ const fourthGroups = {
 
 // 島嶼位置
 const islandGroups = [
-  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 1080, y: 80 },
+  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 1080*scaleFactor, y: 80},
   {
     label: "Guam",
     groups: ["Guamanian", "Guamanian or Chamorro"],
-    x: 930,
+    x: 930*scaleFactor,
     y: 90,
   },
   {
     label: "Northern Mariana",
     groups: ["Guamanian or Chamorro"],
-    x: 880,
+    x: 880*scaleFactor,
     y: 75,
   },
-  { label: "American Samoa", groups: ["Samoan"], x: 1000, y: 110 },
-  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 1050, y: 90 },
+  { label: "American Samoa", groups: ["Samoan"], x: 1000*scaleFactor, y: 110},
+  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 1050*scaleFactor, y: 90 },
 ];
 
 const fifthGroup = {
