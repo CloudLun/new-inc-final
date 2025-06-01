@@ -398,7 +398,8 @@ function setup() {
   
   const margin = 30* scaleFactor;
   const spacingTop = (rectW - margin * 2) / (ethnics.length - 1);
-  const spacingBottom = (rectW - margin * 2) / (yearLabels.length - 1);
+  const visibleYears = yearLabels.filter((y) => y < 2030); // 僅到 2020
+  const spacingBottom = (rectW - margin * 2) / (visibleYears.length - 1);
   const titleH = 10* scaleFactor; // adjust top circle location by editing this
   const yTop = rectY + titleH + margin;
   const yBottom = rectY + rectH - margin;
@@ -415,10 +416,18 @@ function setup() {
     }
   }
 
-  for (let i = 0; i < yearLabels.length; i++) {
+  for (let i = 0; i < visibleYears.length; i++) {
     let x = rectX + margin + i * spacingBottom;
-    bottomCircles.push({ x, y: yBottom, year: yearLabels[i] });
+    bottomCircles.push({ x, y: yBottom, year: visibleYears[i] });
   }
+  
+  // 額外補上 2030，稍微往右擺一點
+  const lastX = rectX + margin + (visibleYears.length - 1) * spacingBottom;
+  bottomCircles.push({
+    x: lastX + spacingBottom * 0.8, // 你可以微調這個值讓 2030 的距離自然
+    y: yBottom,
+    year: 2050, // 或 2030，視你的命名
+  });
 
   // Phase 1
   for (let i = 0; i < topCircles.length; i++) {
