@@ -54,7 +54,18 @@ const phase5AnimatedFadeStart = phase5EndFrame - 600;
 const phase5AnimatedFadeEnd = phase5EndFrame - 60;
 const phase6StartFrame = phase5EndFrame + 40;
 const phase6ClearStartFrame = phase6StartFrame + 120;
-const phase6EndFrame = phase6StartFrame + 3000;
+const phase6EndFrame = phase6StartFrame + 600;
+const phase6FinStartFrame = phase6EndFrame; // 2050停5秒 (約120 frame)
+const phase6FinFadeDuration = 30; // 淡出 2050 的時間
+const phase6FinEndFrame = phase6FinStartFrame + phase6FinFadeDuration;
+
+const finFadeInDuration = 60;     // 1 秒 fade in
+const finHoldDuration = 180;      // 約 3 秒靜止
+const finFadeOutDuration = 60;    // 1 秒 fade out
+const finTotalDuration = finFadeInDuration + finHoldDuration + finFadeOutDuration;
+
+const finStartFrame = phase6FinEndFrame;
+const finEndFrame = finStartFrame + finTotalDuration
 
 const phaseTitles = {
   phase1:
@@ -69,17 +80,26 @@ const phaseTitles = {
 };
 const phaseQuote = {
   phase1:
-    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi from Thicker than Blood: How Racial Statistics Lie (2001)",
+    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi",
   phase2:
-    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki from “The Racial Triangulation of Asian Americans” (1999)",
+    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki ",
   phase3:
-    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez from “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
+    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez ",
   phase4:
-    "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
+    "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft",
   phase5:
-    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar from “Locating Migration: Rescaling Cities and Migrants” (2009)",
+    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar",
   phase6: "  ",
 };
+
+const phaseSource = {
+  phase1:"From Thicker than Blood: How Racial Statistics Lie (2001)",
+  phase2:"From “The Racial Triangulation of Asian Americans” (1999)",
+  phase3:"From “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
+  phase4:"From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
+  phase5:"From “Locating Migration: Rescaling Cities and Migrants” (2009)",
+  phase6:"",
+}
 
 const ethnics = [
   "White",
@@ -87,7 +107,7 @@ const ethnics = [
   "Japanese",
   "Hindu",
   "Korean",
-  "Philippino", 
+  "Philippino",
   "Vietnamese",
   "Asian Indian",
   "Samoan",
@@ -118,38 +138,41 @@ const ethnics = [
 
 function splitLabel(label) {
   const wrapMap = {
-    "White": ["White"],
-    "Chinese": ["Chinese"],
-    "Japanese": ["Japanese"],
-    "Hindu": ["Hindu"],
-    "Korean": ["Korean"],
-    "Philippino": ["Philippino"], 
-    "Vietnamese": ["Vietnamese"],
+    White: ["White"],
+    Chinese: ["Chinese"],
+    Japanese: ["Japanese"],
+    Hindu: ["Hindu"],
+    Korean: ["Korean"],
+    Philippino: ["Philippino"],
+    Vietnamese: ["Vietnamese"],
     "Asian Indian": ["Asian", "Indian"],
-    "Samoan": ["Samoan"],
+    Samoan: ["Samoan"],
     "Guamanian or Chamorro": ["Guamanian or", "Chamorro"],
-    "Guamanian": ["Guamanian"],
+    Guamanian: ["Guamanian"],
     "Part Hawaiian": ["Part", "Hawaiian"],
-    "Hawaiian": ["Hawaiian"],
+    Hawaiian: ["Hawaiian"],
     "Other Asian": ["Other", "Asian"],
     "Other API": ["Other", "API"],
     "Other Pacific Islander": ["Other Pacific", "Islander"],
     "Other Spanish": ["Other", "Spanish"],
     "Other Spanish or Hispanic": ["Other Spanish", "or Hispanic"],
-    "Other Spanish, Hispanic, or Latino": ["Other Spanish,", "Hispanic or Latino"],
-    "Other": ["Other"],
+    "Other Spanish, Hispanic, or Latino": [
+      "Other Spanish,",
+      "Hispanic or Latino",
+    ],
+    Other: ["Other"],
     "Alaska Native": ["Alaska Native"],
-    "Eskimo": ["Eskimo"],
+    Eskimo: ["Eskimo"],
     "American Indian": ["American Indian"],
-    "Aleut": ["Aleut"],
-    "Indian": ["Indian"],
-    "Mexican": ["Mexican"],
-    "Cuban": ["Cuban"],
+    Aleut: ["Aleut"],
+    Indian: ["Indian"],
+    Mexican: ["Mexican"],
+    Cuban: ["Cuban"],
     "Puerto Rican": ["Puerto", "Rican"],
     "Central or South American": ["Central or South", "American"],
     "Mexican, Mexican-American, Chicano": ["Mexican-Am.,", "Mexican, Chicano"],
     "Mixed Black": ["Mixed", "Black"],
-    "Black": ["Black"],
+    Black: ["Black"],
   };
 
   return wrapMap[label] ?? [label]; // fallback to one line if not matched
@@ -175,7 +198,7 @@ const ethnicColors = {
   "Other Spanish": "#828c16",
   "Other Spanish or Hispanic": "#b3ad15",
   "Other Spanish, Hispanic, or Latino": "#d1c32a",
-  "Other": "#ff0000",
+  Other: "#ff0000",
   "Alaska Native": "#ffc496",
   Eskimo: "#f78025",
   "American Indian": "#eb9e1a",
@@ -218,11 +241,14 @@ const firstGroups = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: [1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970, 1980, 1990, 2000, 2010, 2020],
+  Other: [
+    1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970,
+    1980, 1990, 2000, 2010, 2020,
+  ],
   "Alaska Native": [2000, 2010, 2020],
   Eskimo: [1960, 1980],
   Aleut: [1960, 1970, 1980, 1990],
-  "American Indian":[1960, 1970, 1980, 1990],
+  "American Indian": [1960, 1970, 1980, 1990],
   Indian: [1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950],
   Cuban: [1970, 1980, 1990, 2000, 2010, 2020],
   "Puerto Rican": [1970, 1980, 1990, 2000, 2010, 2020],
@@ -335,21 +361,36 @@ const fourthGroups = {
 
 // 島嶼位置
 const islandGroups = [
-  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 1080*scaleFactor, y: 80},
+  {
+    label: "Hawaii",
+    groups: ["Hawaiian", "Part Hawaiian"],
+    x: 1080 * scaleFactor,
+    y: 80,
+  },
   {
     label: "Guam",
     groups: ["Guamanian", "Guamanian or Chamorro"],
-    x: 930*scaleFactor,
+    x: 930 * scaleFactor,
     y: 90,
   },
   {
     label: "Northern Mariana",
     groups: ["Guamanian or Chamorro"],
-    x: 880*scaleFactor,
+    x: 880 * scaleFactor,
     y: 75,
   },
-  { label: "American Samoa", groups: ["Samoan"], x: 1000*scaleFactor, y: 110},
-  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 1050*scaleFactor, y: 90 },
+  {
+    label: "American Samoa",
+    groups: ["Samoan"],
+    x: 1000 * scaleFactor,
+    y: 110,
+  },
+  {
+    label: "Other Pacific",
+    groups: ["Other Pacific Islander"],
+    x: 1050 * scaleFactor,
+    y: 90,
+  },
 ];
 
 const fifthGroup = {
@@ -359,7 +400,10 @@ const fifthGroup = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: [1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970, 1980, 1990, 2000, 2010, 2020],
+  Other: [
+    1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970,
+    1980, 1990, 2000, 2010, 2020,
+  ],
 };
 
 const yearLabels = [
@@ -386,7 +430,12 @@ function drawGradientLine(x1, y1, x2, y2, colors, thickness) {
     strokeWeight(1);
 
     let offset = (i * thickness) / steps;
-    line(x1 + nx * offset, y1 + ny * offset, x2 + nx * offset, y2 + ny * offset);
+    line(
+      x1 + nx * offset,
+      y1 + ny * offset,
+      x2 + nx * offset,
+      y2 + ny * offset
+    );
   }
 }
 
@@ -394,19 +443,24 @@ function setup() {
   createCanvas(1920 * scaleFactor, 1080 * scaleFactor); // now 3840x2160 for 4K
   colorMode(HSL, 360, 100, 100);
   textFont("sans-serif");
-  textStyle(NORMAL); 
-  
-  const margin = 30* scaleFactor;
+  textStyle(NORMAL);
+
+  const margin = 30 * scaleFactor;
   const spacingTop = (rectW - margin * 2) / (ethnics.length - 1);
   const visibleYears = yearLabels.filter((y) => y < 2030); // 僅到 2020
   const spacingBottom = (rectW - margin * 2) / (visibleYears.length - 1);
-  const titleH = 10* scaleFactor; // adjust top circle location by editing this
+  const titleH = 10 * scaleFactor; // adjust top circle location by editing this
   const yTop = rectY + titleH + margin;
   const yBottom = rectY + rectH - margin;
 
   for (let i = 0; i < ethnics.length; i++) {
     let x = rectX + margin + i * spacingTop;
-    topCircles.push({ x, y: yTop, name: ethnics[i], nameLines:splitLabel(ethnics[i]) });
+    topCircles.push({
+      x,
+      y: yTop,
+      name: ethnics[i],
+      nameLines: splitLabel(ethnics[i]),
+    });
 
     const hex = ethnicColors[ethnics[i]];
     if (hex) {
@@ -420,7 +474,7 @@ function setup() {
     let x = rectX + margin + i * spacingBottom;
     bottomCircles.push({ x, y: yBottom, year: visibleYears[i] });
   }
-  
+
   // 額外補上 2030，稍微往右擺一點
   const lastX = rectX + margin + (visibleYears.length - 1) * spacingBottom;
   bottomCircles.push({
@@ -794,32 +848,53 @@ function draw() {
   // 顯示當前階段的標題
   if (frameCounter >= phase1StartFrame && frameCounter < phase1EndFrame) {
     currentPhase = 1;
-  } else if (frameCounter >= phase2StartFrame && frameCounter < phase2EndFrame) {
+  } else if (
+    frameCounter >= phase2StartFrame &&
+    frameCounter < phase2EndFrame
+  ) {
     currentPhase = 2;
-  } else if (frameCounter >= phase3StartFrame && frameCounter < phase3EndFrame) {
+  } else if (
+    frameCounter >= phase3StartFrame &&
+    frameCounter < phase3EndFrame
+  ) {
     currentPhase = 3;
-  } else if (frameCounter >= phase4StartFrame && frameCounter < phase4EndFrame) {
+  } else if (
+    frameCounter >= phase4StartFrame &&
+    frameCounter < phase4EndFrame
+  ) {
     currentPhase = 4;
-  } else if (frameCounter >= phase5StartFrame && frameCounter < phase5EndFrame) {
+  } else if (
+    frameCounter >= phase5StartFrame &&
+    frameCounter < phase5EndFrame
+  ) {
     currentPhase = 5;
-  } else if (frameCounter >= phase6StartFrame && frameCounter < phase6EndFrame) {
+  } else if (
+    frameCounter >= phase6StartFrame &&
+    frameCounter < phase6EndFrame
+  ) {
     currentPhase = 6;
   }
 
   let img = titleImages[currentPhase];
-  if (img) {
+  if (img && currentPhase !== 6) {
     imageMode(CORNER);
-    image(img, rectX + 10* scaleFactor, rectY - 80* scaleFactor, 800* scaleFactor, 50* scaleFactor);
+    image(
+      img,
+      rectX + 10 * scaleFactor,
+      rectY - 80 * scaleFactor,
+      800 * scaleFactor,
+      50 * scaleFactor
+    );
   }
-// else if (currentPhaseKey && phaseTitles[currentPhaseKey]) {
-//   noStroke();
-//   fill(255);
-//   textSize(16);
-//   textStyle(NORMAL);
-//   textFont("sans-serif");
-//   textAlign(LEFT, BOTTOM);
-//   text(phaseTitles[currentPhaseKey], rectX + 30, rectY - 40);
-// }
+  // else if (currentPhaseKey && phaseTitles[currentPhaseKey]) {
+  //   noStroke();
+  //   fill(255);
+  //   textSize(16);
+  //   textStyle(NORMAL);
+  //   textFont("sans-serif");
+  //   textAlign(LEFT, BOTTOM);
+  //   text(phaseTitles[currentPhaseKey], rectX + 30, rectY - 40);
+  // }
 
   const asianGroups = new Set([
     "Black",
@@ -848,27 +923,34 @@ function draw() {
         }
         return null;
       })
-      .filter(c => c !== null);
+      .filter((c) => c !== null);
   }
 
   if (isPhase3) {
     const timeIntoPhase3 = frameCounter - phase3StartFrame;
-  
+
     // Wait until delay has passed before shuffling
     if (timeIntoPhase3 >= phase3ShuffleDelay) {
-      const progress = (timeIntoPhase3 - phase3ShuffleDelay) / (phase3EndFrame - phase3StartFrame - phase3ShuffleDelay);
-  
-      const minInterval = 3;   // fastest
-      const maxInterval = 20;  // slowest
-      const interval = Math.floor(lerp(maxInterval, minInterval, constrain(progress, 0, 1)));
-  
+      const progress =
+        (timeIntoPhase3 - phase3ShuffleDelay) /
+        (phase3EndFrame - phase3StartFrame - phase3ShuffleDelay);
+
+      const minInterval = 3; // fastest
+      const maxInterval = 20; // slowest
+      const interval = Math.floor(
+        lerp(maxInterval, minInterval, constrain(progress, 0, 1))
+      );
+
       if (frameCounter % interval === 0 && phase3ColorList.length > 1) {
         // Shuffle using Fisher-Yates
         for (let i = phase3ColorList.length - 1; i > 0; i--) {
           let j = Math.floor(random(i + 1));
-          [phase3ColorList[i].color, phase3ColorList[j].color] = [phase3ColorList[j].color, phase3ColorList[i].color];
+          [phase3ColorList[i].color, phase3ColorList[j].color] = [
+            phase3ColorList[j].color,
+            phase3ColorList[i].color,
+          ];
         }
-  
+
         // Apply to topColors
         for (let item of phase3ColorList) {
           topColors[item.originalIndex] = item.color;
@@ -887,7 +969,7 @@ function draw() {
   //   const maxIndex = topCircles.length - 1;
   //   const fadeProgress = constrain(step*10 / maxIndex, 0, 1);
   //   bgAlpha = lerp(0, 255, fadeProgress);
-  
+
   //   noStroke();
   //   fill(255, bgAlpha);
   //   rect(0, 0, width, height);
@@ -922,20 +1004,22 @@ function draw() {
       if (i >= maxIndex - step) visible = false;
     }
 
-
-  // 👇 Only draw if both logical group visibility and fadeAlpha allow
+    // 👇 Only draw if both logical group visibility and fadeAlpha allow
     if (visible) {
       fill(topColors[i]);
       noStroke();
-      ellipse(pt.x, pt.y, 7* scaleFactor);
+      ellipse(pt.x, pt.y, 7 * scaleFactor);
       fill(255); // 👈 fade text too
-      textStyle(NORMAL); 
+      textStyle(NORMAL);
       textFont("sans-serif");
       textAlign(CENTER, BOTTOM);
-      textSize(6* scaleFactor);
+      textSize(6 * scaleFactor);
       const nameLines = pt.nameLines;
       for (let j = 0; j < nameLines.length; j++) {
-        let lineY = pt.y - 10* scaleFactor - (nameLines.length - 1 - j) * 9* scaleFactor; // stack upward
+        let lineY =
+          pt.y -
+          10 * scaleFactor -
+          (nameLines.length - 1 - j) * 9 * scaleFactor; // stack upward
         text(nameLines[j], pt.x, lineY);
       }
     }
@@ -947,7 +1031,7 @@ function draw() {
     if (pt.year === 2050 && frameCounter < phase6StartFrame) continue;
 
     const disappearInterval = 5;
-    // ✅ 隱藏邏輯：phase6 從右至左不顯示
+
     if (pt.year !== 2050 && frameCounter >= phase6ClearStartFrame) {
       const step = Math.floor(
         (frameCounter - phase6ClearStartFrame) / disappearInterval
@@ -956,14 +1040,25 @@ function draw() {
       if (i >= maxIndex - step) continue;
     }
 
-    fill(255);
+    let alpha = 255;
+    if (pt.year === 2050 && frameCounter >= phase6FinStartFrame) {
+      const fadeProgress = constrain(
+        (frameCounter - phase6FinStartFrame) / phase6FinFadeDuration,
+        0,
+        1
+      );
+      alpha = lerp(255, 0, fadeProgress);
+    }
+
+    fill(255, alpha);
     noStroke();
-    ellipse(pt.x, pt.y, 5* scaleFactor);
-    textStyle(NORMAL); 
+    ellipse(pt.x, pt.y, 5 * scaleFactor);
+    fill(255, alpha);
+    textStyle(NORMAL);
     textFont("sans-serif");
     textAlign(CENTER, TOP);
-    textSize(10* scaleFactor);
-    text(pt.year, pt.x, pt.y + 6* scaleFactor);
+    textSize(10 * scaleFactor);
+    text(pt.year, pt.x, pt.y + 6 * scaleFactor);
   }
 
   const mixedBlackDrawnYears = new Set();
@@ -996,7 +1091,7 @@ function draw() {
     if (allFinished) fadedYears.add(year);
   }
 
-  strokeWeight(0.9* scaleFactor);
+  strokeWeight(0.9 * scaleFactor);
 
   for (let conn of connections) {
     if (frameCounter >= phase6ClearStartFrame) {
@@ -1132,11 +1227,10 @@ function draw() {
         let x2 = lerp(x1, conn.top.x, progress);
         let y2 = lerp(y1, conn.top.y, progress);
 
-
         // ==== Fading logic ===
         let alpha = 255;
         let alpha_mix = 200;
-        let weight =0.9* scaleFactor;
+        let weight = 0.9 * scaleFactor;
         if (elapsed >= fadeStart) {
           const fadeProgress = constrain(
             (elapsed - fadeStart) / fadeDuration,
@@ -1144,12 +1238,18 @@ function draw() {
             1
           );
           alpha_mix = lerp(255, 60, fadeProgress); // alpha for phase 2
-          alpha= lerp(255, 120, fadeProgress);
+          alpha = lerp(255, 120, fadeProgress);
         }
 
         if (conn.top.name === "Mixed Black") {
           // Define your gradient color palette
-          const baseHexes = ['#FF5347', '#FF5F59', '#FF6A6B', '#FF767D', '#FF818F'];
+          const baseHexes = [
+            "#FF5347",
+            "#FF5F59",
+            "#FF6A6B",
+            "#FF767D",
+            "#FF818F",
+          ];
           const alphaSteps = [40, 100, 255, 100, 40];
 
           let baseGradient = baseHexes.map((hex, idx) => {
@@ -1158,11 +1258,17 @@ function draw() {
             return c;
           });
 
-          const fadeProgressMix = constrain((frameCounter - fadeStart) / fadeDuration, 0, 1);
+          const fadeProgressMix = constrain(
+            (frameCounter - fadeStart) / fadeDuration,
+            0,
+            1
+          );
           const fadeFactorMix = lerp(1, 0.4, fadeProgressMix); // or fade to 0.2, 0, etc.
 
-          let fadedGradientMix = baseGradient.map(col => {
-            let a = col._getAlpha ? col._getAlpha() * fadeFactorMix : 255 * fadeFactorMix;
+          let fadedGradientMix = baseGradient.map((col) => {
+            let a = col._getAlpha
+              ? col._getAlpha() * fadeFactorMix
+              : 255 * fadeFactorMix;
             return color(red(col), green(col), blue(col), a);
           });
 
@@ -1192,7 +1298,7 @@ function draw() {
             0,
             1
           );
-          alpha = lerp(255, 120, fadeProgress);  // alpha for island striaght line
+          alpha = lerp(255, 120, fadeProgress); // alpha for island striaght line
           // if (fadeProgress === 1) continue;
         }
 
@@ -1247,13 +1353,13 @@ function draw() {
     for (let island of islandCircles) {
       fill(island.fillColor || color(0));
       noStroke();
-      ellipse(island.x, island.y, 12* scaleFactor);
+      ellipse(island.x, island.y, 12 * scaleFactor);
       fill(0);
-      textStyle(NORMAL); 
+      textStyle(NORMAL);
       textFont("sans-serif");
       textAlign(CENTER, BOTTOM);
-      textSize(10* scaleFactor);
-      text(island.label, island.x, island.y - 6* scaleFactor);
+      textSize(10 * scaleFactor);
+      text(island.label, island.x, island.y - 6 * scaleFactor);
     }
 
     for (let conn of islandConnections) {
@@ -1283,9 +1389,9 @@ function draw() {
         let y2 = conn.bottom.y;
 
         let cp1x = lerp(x1, x2, 0.3);
-        let cp1y = lerp(y1, y2, 0.3) - 60* scaleFactor;
+        let cp1y = lerp(y1, y2, 0.3) - 60 * scaleFactor;
         let cp2x = lerp(x1, x2, 0.7);
-        let cp2y = lerp(y1, y2, 0.7) - 60* scaleFactor;
+        let cp2y = lerp(y1, y2, 0.7) - 60 * scaleFactor;
 
         colorMode(RGB);
         const c = conn.lineColor ?? color(0);
@@ -1337,16 +1443,90 @@ function draw() {
   }
 
   if (currentQuote) {
+    const innerPadding = 30 * scaleFactor;
+    const quoteBoxWidth = 700 * scaleFactor;
+  
     noStroke();
-    fill(255); // 比純黑淡一些
-    textSize(12* scaleFactor);
+    fill(255);
+    textSize(12 * scaleFactor);
     textStyle(ITALIC);
     textFont("sans-serif");
     textAlign(LEFT, TOP);
-
-    const quoteBoxWidth = 700* scaleFactor; // 換行寬度上限
-    text(currentQuote, rectX + 30* scaleFactor, rectY + rectH + 30* scaleFactor, quoteBoxWidth);
+  
+    const quoteX = rectX + innerPadding;
+    const quoteY = rectY + rectH + 30 * scaleFactor;
+  
+    text(currentQuote, quoteX, quoteY, quoteBoxWidth);
+  
+    // ===== SOURCE 對稱放在右邊編筐內 =====
+    const sourceKey = `phase${currentPhase}`;
+    const currentSource = phaseSource[sourceKey];
+  
+    if (currentSource) {
+      noStroke();
+      fill(255);
+      textSize(10 * scaleFactor);
+      textStyle(NORMAL);
+      textFont("sans-serif");
+      textAlign(RIGHT, TOP); // 右對齊
+  
+      const sourceX = rectX + rectW - innerPadding; // ✅ 與 quote 左邊對稱
+      const sourceY = quoteY;
+  
+      text(currentSource, sourceX, sourceY);
+    }
   }
+  
+  
+  
+  
+  
+  
+  
+
+  // if (frameCounter >= phase6FinEndFrame) {
+  //   fill(255);
+  //   noStroke();
+  //   textAlign(CENTER, CENTER);
+  //   textSize(48 * scaleFactor);
+  //   textStyle(BOLD);
+  //   const centerX = rectX + rectW / 2;
+  //   const centerY = rectY + rectH / 2;
+  //   text("FIN", centerX, centerY);
+  // }
+
+  if (frameCounter >= finStartFrame && frameCounter <= finEndFrame) {
+    const centerX = rectX + rectW / 2;
+    const centerY = rectY + rectH / 2;
+  
+    let alpha = 255;
+    const localFrame = frameCounter - finStartFrame;
+  
+    if (localFrame < finFadeInDuration) {
+      // Fade in
+      alpha = map(localFrame, 0, finFadeInDuration, 0, 255);
+    } else if (localFrame < finFadeInDuration + finHoldDuration) {
+      // Hold
+      alpha = 255;
+    } else {
+      // Fade out
+      alpha = map(
+        localFrame,
+        finFadeInDuration + finHoldDuration,
+        finTotalDuration,
+        255,
+        0
+      );
+    }
+  
+    fill(255, alpha);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    textSize(48 * scaleFactor);
+    textStyle(BOLD);
+    text("FIN", centerX, centerY);
+  }
+  
 
   frameCounter++;
 }
