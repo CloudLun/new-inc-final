@@ -16,7 +16,7 @@ const phase1StartFrame = 0;
 const phase1EndFrame = 600;
 
 const phase2StartFrame = phase1EndFrame + 40;
-const phase2EndFrame = phase2StartFrame + 1000;
+const phase2EndFrame = phase2StartFrame + 1500;
 
 const phase3StartFrame = phase2EndFrame + 40;
 const phase3EndFrame = phase3StartFrame + 1000;
@@ -26,7 +26,12 @@ const phase4EndFrame = phase4StartFrame + 2000;
 
 const phase5StartFrame = phase4EndFrame + 40;
 const phase5TransitionFrame = phase5StartFrame + 60;
-const phase5EndFrame = phase5StartFrame + 2000;
+const phase5EndFrame = phase5StartFrame + 1500;
+const phase5AnimatedFadeStart = phase5EndFrame - 600;
+const phase5AnimatedFadeEnd = phase5EndFrame - 60;
+const phase6StartFrame = phase5EndFrame + 40;
+const phase6ClearStartFrame = phase6StartFrame + 120;
+const phase6EndFrame = phase6StartFrame + 3000;
 
 const phaseTitles = {
   phase1:
@@ -37,6 +42,7 @@ const phaseTitles = {
     "How can invisible borders determine your identity? Is it possible to disentangle culture and heritage from ethnicity?",
   phase4: "Why are people who aren’t in the States included in the Census?",
   phase5: "What is otherness?",
+  phase6: "What does the future hold or what does the future look like?",
 };
 const phaseQuote = {
   phase1:
@@ -49,6 +55,7 @@ const phaseQuote = {
     "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
   phase5:
     "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar from “Locating Migration: Rescaling Cities and Migrants” (2009)",
+  phase6: "ssss",
 };
 
 const ethnics = [
@@ -292,7 +299,7 @@ const fifthGroup = {
 
 const yearLabels = [
   1790, 1800, 1810, 1820, 1830, 1840, 1850, 1860, 1870, 1880, 1890, 1900, 1910,
-  1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020,
+  1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, 2030,
 ];
 
 function setup() {
@@ -597,88 +604,87 @@ function setup() {
     }
   });
 
-// ✅ Phase 5: static + animated
-const phase5StaticFadeDuration = 120;
-const durationPerConn = 40; // 一條動畫間隔
-const phase5TransitionFrame = phase5StartFrame + phase5StaticFadeDuration;
+  // ✅ Phase 5: static + animated
+  const phase5StaticFadeDuration = 120;
+  const durationPerConn = 40; // 一條動畫間隔
+  const phase5TransitionFrame = phase5StartFrame + phase5StaticFadeDuration;
 
-// 1️⃣ 所有族群的 static 線條（subPhase: static）
-let delay5 = 0;
-for (let groupName of Object.keys(firstGroups)) {
-  const years = firstGroups[groupName];
-  if (!years) continue;
+  // 1️⃣ 所有族群的 static 線條（subPhase: static）
+  let delay5 = 0;
+  for (let groupName of Object.keys(firstGroups)) {
+    const years = firstGroups[groupName];
+    if (!years) continue;
 
-  const topIndex = topCircles.findIndex((t) => t.name === groupName);
-  if (topIndex === -1) continue;
+    const topIndex = topCircles.findIndex((t) => t.name === groupName);
+    if (topIndex === -1) continue;
 
-  const topPt = topCircles[topIndex];
+    const topPt = topCircles[topIndex];
 
-  const groupStartFrame = phase5StartFrame + delay5 * 2; // 小間隔讓畫面變化自然
-  for (let year of years) {
+    const groupStartFrame = phase5StartFrame + delay5 * 2; // 小間隔讓畫面變化自然
+    for (let year of years) {
+      const bottomPt = bottomCircles.find((b) => b.year === year);
+      if (!bottomPt) continue;
+
+      connections.push({
+        top: topPt,
+        bottom: bottomPt,
+        topGroup: topIndex,
+        startFrame: groupStartFrame,
+        phase: 5,
+        subPhase: "static",
+      });
+    }
+
+    delay5++;
+  }
+
+  // 2️⃣ Others group 的 animated 線條（subPhase: animated）
+  const fifthGroupsByYears = {};
+  for (let groupName in fifthGroup) {
+    const years = fifthGroup[groupName];
+    if (!years) continue;
+    for (let year of years) {
+      if (!fifthGroupsByYears[year]) fifthGroupsByYears[year] = [];
+      fifthGroupsByYears[year].push(groupName);
+    }
+  }
+
+  const sortedFifthYears = Object.keys(fifthGroupsByYears)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  frameOffset = 0;
+  for (let year of sortedFifthYears) {
+    const groupNames = fifthGroupsByYears[year];
     const bottomPt = bottomCircles.find((b) => b.year === year);
     if (!bottomPt) continue;
 
-    connections.push({
-      top: topPt,
-      bottom: bottomPt,
-      topGroup: topIndex,
-      startFrame: groupStartFrame,
-      phase: 5,
-      subPhase: "static",
-    });
+    const topGroupPoints = groupNames
+      .map((name) => topCircles.find((t) => t.name === name))
+      .filter(Boolean)
+      .sort((a, b) => a.y - b.y);
+
+    for (let i = 0; i < topGroupPoints.length; i++) {
+      const topPt = topGroupPoints[i];
+      const topGroupIndex = topCircles.findIndex((t) => t.name === topPt.name);
+      if (topGroupIndex === -1) continue;
+
+      connections.push({
+        top: topPt,
+        bottom: bottomPt,
+        topGroup: topGroupIndex,
+        startFrame: phase5TransitionFrame + frameOffset,
+        phase: 5,
+        subPhase: "animated",
+      });
+
+      frameOffset += durationPerConn;
+    }
   }
 
-  delay5++;
-}
-
-// 2️⃣ Others group 的 animated 線條（subPhase: animated）
-const fifthGroupsByYears = {};
-for (let groupName in fifthGroup) {
-  const years = fifthGroup[groupName];
-  if (!years) continue;
-  for (let year of years) {
-    if (!fifthGroupsByYears[year]) fifthGroupsByYears[year] = [];
-    fifthGroupsByYears[year].push(groupName);
-  }
-}
-
-const sortedFifthYears = Object.keys(fifthGroupsByYears)
-  .map(Number)
-  .sort((a, b) => a - b);
-
-frameOffset = 0;
-for (let year of sortedFifthYears) {
-  const groupNames = fifthGroupsByYears[year];
-  const bottomPt = bottomCircles.find((b) => b.year === year);
-  if (!bottomPt) continue;
-
-  const topGroupPoints = groupNames
-    .map((name) => topCircles.find((t) => t.name === name))
-    .filter(Boolean)
-    .sort((a, b) => a.y - b.y);
-
-  for (let i = 0; i < topGroupPoints.length; i++) {
-    const topPt = topGroupPoints[i];
-    const topGroupIndex = topCircles.findIndex((t) => t.name === topPt.name);
-    if (topGroupIndex === -1) continue;
-
-    connections.push({
-      top: topPt,
-      bottom: bottomPt,
-      topGroup: topGroupIndex,
-      startFrame: phase5TransitionFrame + frameOffset,
-      phase: 5,
-      subPhase: "animated",
-    });
-
-    frameOffset += durationPerConn;
-  }
-}
-
-// ✅ 根據動畫總長度重新定義 phase5EndFrame
-const phase5EndBuffer = 200;
-const phase5EndFrame = phase5TransitionFrame + frameOffset + phase5EndBuffer;
-
+  // ✅ 根據動畫總長度重新定義 phase5EndFrame
+  const phase5EndBuffer = 200;
+  const phase5EndFrame = phase5TransitionFrame + frameOffset + phase5EndBuffer;
 }
 
 function draw() {
@@ -711,6 +717,11 @@ function draw() {
     frameCounter < phase5EndFrame
   ) {
     currentTitle = phaseTitles.phase5;
+  } else if (
+    frameCounter >= phase6StartFrame &&
+    frameCounter < phase6EndFrame
+  ) {
+    currentTitle = phaseTitles.phase6;
   }
 
   if (currentTitle) {
@@ -760,6 +771,15 @@ function draw() {
       const fourthGroupSet = new Set(Object.keys(fourthGroups));
       visible = fourthGroupSet.has(pt.name);
     }
+    const disappearInterval = 5;
+
+    if (frameCounter >= phase6ClearStartFrame) {
+      const step = Math.floor(
+        (frameCounter - phase6ClearStartFrame) / disappearInterval
+      );
+      const maxIndex = topCircles.length - 1;
+      if (i >= maxIndex - step) visible = false;
+    }
 
     if (visible) {
       fill(topColors[i]);
@@ -772,7 +792,21 @@ function draw() {
     }
   }
 
-  for (let pt of bottomCircles) {
+  for (let i = 0; i < bottomCircles.length; i++) {
+    const pt = bottomCircles[i];
+
+    if (pt.year === 2030 && frameCounter < phase6StartFrame) continue;
+
+    const disappearInterval = 5;
+    // ✅ 隱藏邏輯：phase6 從右至左不顯示
+    if (pt.year !== 2030 && frameCounter >= phase6ClearStartFrame) {
+      const step = Math.floor(
+        (frameCounter - phase6ClearStartFrame) / disappearInterval
+      );
+      const maxIndex = bottomCircles.length - 1;
+      if (i >= maxIndex - step) continue;
+    }
+
     fill(255);
     noStroke();
     ellipse(pt.x, pt.y, 5);
@@ -812,7 +846,11 @@ function draw() {
   }
 
   strokeWeight(0.9);
+
   for (let conn of connections) {
+    if (frameCounter >= phase6ClearStartFrame) {
+      continue;
+    }
     if (
       (conn.phase === 1 && frameCounter > phase1EndFrame) ||
       (conn.phase === 2 &&
@@ -827,6 +865,7 @@ function draw() {
         frameCounter <= phase5EndFrame)
     )
       continue;
+
     // === Phase 5 特別處理 ===
     if (conn.phase === 5) {
       if (conn.subPhase === "static") {
@@ -852,26 +891,26 @@ function draw() {
       if (conn.subPhase === "animated" && frameCounter >= conn.startFrame) {
         let progress = constrain((frameCounter - conn.startFrame) / 60, 0, 1);
 
-        const otherGroupSet = new Set([
-          "Other API",
-          "Other Asian",
-          "Other Pacific Islander",
-          "Other Spanish",
-          "Other Spanish or Hispanic",
-          "Other Spanish, Hispanic, or Latino",
-          "Other",
-        ]);
-
-        const isOther = otherGroupSet.has(conn.top.name);
-
         let x1 = conn.bottom.x;
         let y1 = conn.bottom.y;
         let x2 = lerp(x1, conn.top.x, progress);
         let y2 = lerp(y1, conn.top.y, progress);
 
+        // === 新增：處理淡出 alpha ===
+        let alpha = 255;
+        if (frameCounter >= phase5AnimatedFadeStart) {
+          const fadeProgress = constrain(
+            (frameCounter - phase5AnimatedFadeStart) /
+              (phase5AnimatedFadeEnd - phase5AnimatedFadeStart),
+            0,
+            1
+          );
+          alpha = lerp(255, 0, fadeProgress);
+        }
+
         colorMode(RGB);
         const c = topColors[conn.topGroup];
-        stroke(red(c), green(c), blue(c), 255);
+        stroke(red(c), green(c), blue(c), alpha);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
@@ -1108,6 +1147,11 @@ function draw() {
     frameCounter < phase5EndFrame
   ) {
     currentQuote = phaseQuote.phase5;
+  } else if (
+    frameCounter >= phase6StartFrame &&
+    frameCounter < phase6EndFrame
+  ) {
+    currentQuote = phaseQuote.phase6; // ✅ 加這一行就好
   }
 
   if (currentQuote) {
