@@ -5,7 +5,6 @@ let islandConnections = [];
 let topColors = [];
 let islandCircles = [];
 
-
 let rectX = 100;
 let rectY = 200;
 let rectW = 1440;
@@ -26,7 +25,7 @@ const phase4StartFrame = phase3EndFrame + 40;
 const phase4EndFrame = phase4StartFrame + 2000;
 
 const phase5StartFrame = phase4EndFrame + 40;
-const phase5TransitionFrame = phase5StartFrame + 120;
+const phase5TransitionFrame = phase5StartFrame + 60;
 const phase5EndFrame = phase5StartFrame + 2000;
 
 const phaseTitles = {
@@ -149,7 +148,7 @@ const firstGroups = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: undefined,
+  Other: [],
   "American Indian or Alaska Native": [2000, 2010, 2020],
   Eskimo: [1960, 1980],
   Aleut: [1960, 1970, 1980, 1990],
@@ -262,6 +261,7 @@ const fourthGroups = {
   "Other Pacific Islander": [2000, 2010],
 };
 
+// 島嶼位置
 const islandGroups = [
   { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 980, y: 30 },
   {
@@ -287,7 +287,7 @@ const fifthGroup = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: undefined,
+  Other: [],
 };
 
 const yearLabels = [
@@ -385,20 +385,20 @@ function setup() {
   if (baseMixed) {
     const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
     const baseBlack = topCircles.find((t) => t.name === "Black");
-    
+
     mixedExtraCircles = [];
     const mixedExtraConnections = [];
-    
+
     if (baseMixed && baseBlack) {
       const x1 = baseMixed.x;
       const x2 = baseBlack.x;
       const baseY = baseMixed.y;
-    
+
       const fixedColors = ["#FF5F59", "#FF6A6B", "#FF767D", "#FF818F"];
       const count = fixedColors.length;
       const tMin = 0.2;
       const tMax = 0.8;
-      
+
       for (let i = 0; i < count; i++) {
         const t = map(i, 0, count - 1, tMin, tMax);
         const x = lerp(baseMixed.x, baseBlack.x, t);
@@ -407,20 +407,20 @@ function setup() {
         const pt = { x, y, name: "MixedBlackExtra-" + i, alpha: 0 };
         mixedExtraCircles.push({ pt, color: c });
       }
-    
+
       // 下面這段保留你原本的連線邏輯不變
       const mixedYears = [
-        1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920,
-        1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020
+        1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
+        1970, 1980, 1990, 2000, 2010, 2020,
       ];
       totalFrame = 0;
-    
+
       for (let year of mixedYears) {
         const bottomPt = bottomCircles.find((b) => b.year === year);
         if (!bottomPt) continue;
-    
+
         const yearStart = phase2StartFrame + totalFrame;
-    
+
         for (const { pt, color } of mixedExtraCircles) {
           mixedExtraConnections.push({
             top: pt,
@@ -431,16 +431,18 @@ function setup() {
             phase: 2,
           });
         }
-    
+
         totalFrame += animationPerYear + pauseBetweenYears;
       }
-    
+
       connections.push(...mixedExtraConnections);
     }
-    
 
     // 🔸 連接到 Mixed Black 相同年份
-    const mixedYears = [1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920,1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
+    const mixedYears = [
+      1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
+      1970, 1980, 1990, 2000, 2010, 2020,
+    ];
     if (mixedYears) {
       totalFrame = 0; // reset 時間
 
@@ -595,83 +597,88 @@ function setup() {
     }
   });
 
-  // ======== Phase 5 ========
-  const phase5StartFrame = 7060;
-  const phase5TransitionFrame = phase5StartFrame + 120;
+// ✅ Phase 5: static + animated
+const phase5StaticFadeDuration = 120;
+const durationPerConn = 40; // 一條動畫間隔
+const phase5TransitionFrame = phase5StartFrame + phase5StaticFadeDuration;
 
-  let delay5 = 0;
-  const interval5 = 24;
-  for (let groupName of Object.keys(firstGroups)) {
-    const years = firstGroups[groupName];
-    if (!years) continue;
+// 1️⃣ 所有族群的 static 線條（subPhase: static）
+let delay5 = 0;
+for (let groupName of Object.keys(firstGroups)) {
+  const years = firstGroups[groupName];
+  if (!years) continue;
 
-    const topIndex = topCircles.findIndex((t) => t.name === groupName);
-    if (topIndex === -1) continue;
+  const topIndex = topCircles.findIndex((t) => t.name === groupName);
+  if (topIndex === -1) continue;
 
-    const topPt = topCircles[topIndex];
-    const groupStartFrame = phase5StartFrame + delay5 * interval5;
+  const topPt = topCircles[topIndex];
 
-    for (let year of years) {
-      const bottomPt = bottomCircles.find((b) => b.year === year);
-      if (!bottomPt) continue;
-
-      connections.push({
-        top: topPt,
-        bottom: bottomPt,
-        topGroup: topIndex,
-        startFrame: groupStartFrame,
-        phase: 5,
-        subPhase: "static",
-      });
-    }
-
-    delay5++;
-  }
-
-  // 2️⃣ 動畫畫出 fifthGroup 的族群（以年份為單位，由上往下）
-  const fifthGroupsByYears = {};
-  for (let groupName in fifthGroup) {
-    const years = fifthGroup[groupName];
-    if (!years) continue;
-    for (let year of years) {
-      if (!fifthGroupsByYears[year]) fifthGroupsByYears[year] = [];
-      fifthGroupsByYears[year].push(groupName);
-    }
-  }
-
-  const sortedFifthYears = Object.keys(fifthGroupsByYears)
-    .map(Number)
-    .sort((a, b) => a - b);
-  frameOffset = 0;
-  const durationPerConn = 40;
-
-  for (let year of sortedFifthYears) {
-    const groupNames = fifthGroupsByYears[year];
+  const groupStartFrame = phase5StartFrame + delay5 * 2; // 小間隔讓畫面變化自然
+  for (let year of years) {
     const bottomPt = bottomCircles.find((b) => b.year === year);
     if (!bottomPt) continue;
 
-    const topGroupPoints = groupNames
-      .map((name) => topCircles.find((t) => t.name === name))
-      .filter(Boolean)
-      .sort((a, b) => a.y - b.y);
-
-    for (let i = 0; i < topGroupPoints.length; i++) {
-      const topPt = topGroupPoints[i];
-      const topGroupIndex = topCircles.findIndex((t) => t.name === topPt.name);
-      if (topGroupIndex === -1) continue;
-
-      connections.push({
-        top: topPt,
-        bottom: bottomPt,
-        topGroup: topGroupIndex,
-        startFrame: phase5TransitionFrame + frameOffset,
-        phase: 5,
-        subPhase: "animated",
-      });
-
-      frameOffset += durationPerConn;
-    }
+    connections.push({
+      top: topPt,
+      bottom: bottomPt,
+      topGroup: topIndex,
+      startFrame: groupStartFrame,
+      phase: 5,
+      subPhase: "static",
+    });
   }
+
+  delay5++;
+}
+
+// 2️⃣ Others group 的 animated 線條（subPhase: animated）
+const fifthGroupsByYears = {};
+for (let groupName in fifthGroup) {
+  const years = fifthGroup[groupName];
+  if (!years) continue;
+  for (let year of years) {
+    if (!fifthGroupsByYears[year]) fifthGroupsByYears[year] = [];
+    fifthGroupsByYears[year].push(groupName);
+  }
+}
+
+const sortedFifthYears = Object.keys(fifthGroupsByYears)
+  .map(Number)
+  .sort((a, b) => a - b);
+
+frameOffset = 0;
+for (let year of sortedFifthYears) {
+  const groupNames = fifthGroupsByYears[year];
+  const bottomPt = bottomCircles.find((b) => b.year === year);
+  if (!bottomPt) continue;
+
+  const topGroupPoints = groupNames
+    .map((name) => topCircles.find((t) => t.name === name))
+    .filter(Boolean)
+    .sort((a, b) => a.y - b.y);
+
+  for (let i = 0; i < topGroupPoints.length; i++) {
+    const topPt = topGroupPoints[i];
+    const topGroupIndex = topCircles.findIndex((t) => t.name === topPt.name);
+    if (topGroupIndex === -1) continue;
+
+    connections.push({
+      top: topPt,
+      bottom: bottomPt,
+      topGroup: topGroupIndex,
+      startFrame: phase5TransitionFrame + frameOffset,
+      phase: 5,
+      subPhase: "animated",
+    });
+
+    frameOffset += durationPerConn;
+  }
+}
+
+// ✅ 根據動畫總長度重新定義 phase5EndFrame
+const phase5EndBuffer = 200;
+const phase5EndFrame = phase5TransitionFrame + frameOffset + phase5EndBuffer;
+
 }
 
 function draw() {
@@ -813,10 +820,13 @@ function draw() {
       (conn.phase === 3 &&
         (frameCounter < phase3StartFrame || frameCounter > phase3EndFrame)) ||
       (conn.phase === 4 &&
-        (frameCounter < phase4StartFrame || frameCounter > phase4EndFrame))
+        (frameCounter < phase4StartFrame || frameCounter > phase4EndFrame)) ||
+      (conn.phase === 5 &&
+        conn.subPhase !== "animated" && // 👈 新增這條判斷：animated 要留下來
+        frameCounter > phase5EndFrame &&
+        frameCounter <= phase5EndFrame)
     )
       continue;
-
     // === Phase 5 特別處理 ===
     if (conn.phase === 5) {
       if (conn.subPhase === "static") {
@@ -873,14 +883,14 @@ function draw() {
     if (conn.phase === 3 && frameCounter >= conn.startFrame) {
       let elapsed = frameCounter - conn.startFrame;
       let progress = constrain(elapsed / 60, 0, 1); // 60 為動畫時長
-  
+
       let x1 = conn.bottom.x;
       let y1 = conn.bottom.y;
       let x2 = lerp(x1, conn.top.x, progress);
       let y2 = lerp(y1, conn.top.y, progress);
-  
+
       let alpha = lerp(0, 255, progress); // 淡入透明度
-  
+
       colorMode(RGB);
       const c = topColors[conn.topGroup];
       stroke(red(c), green(c), blue(c), alpha);
@@ -917,7 +927,7 @@ function draw() {
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
-      } else if (conn.phase === 2 ) {
+      } else if (conn.phase === 2) {
         const yearDuration = 60;
         const fadeStart = yearDuration;
         const fadeDuration = 60;
@@ -953,23 +963,27 @@ function draw() {
       if (conn.phase === 4 && frameCounter >= conn.startFrame) {
         const drawDuration = 60;
         const fadeDuration = 30;
-      
+
         const elapsed = frameCounter - conn.startFrame;
-      
+
         let alpha = 255;
         if (elapsed > drawDuration) {
-          const fadeProgress = constrain((elapsed - drawDuration) / fadeDuration, 0, 1);
+          const fadeProgress = constrain(
+            (elapsed - drawDuration) / fadeDuration,
+            0,
+            1
+          );
           alpha = lerp(255, 0, fadeProgress);
-          if (fadeProgress === 1) continue; 
+          if (fadeProgress === 1) continue;
         }
-      
+
         let progress = constrain(elapsed / drawDuration, 0, 1);
-      
+
         let x1 = conn.top.x;
         let y1 = conn.top.y;
         let x2 = lerp(x1, conn.bottom.x, progress);
         let y2 = lerp(y1, conn.bottom.y, progress);
-      
+
         colorMode(RGB);
         const c = topColors[conn.topGroup];
         stroke(red(c), green(c), blue(c), alpha);
@@ -977,7 +991,6 @@ function draw() {
         colorMode(HSL, 360, 100, 100);
         continue;
       }
-      
 
       let alpha = 255;
       const isAsian = asianGroups.has(conn.top.name);
@@ -1027,28 +1040,32 @@ function draw() {
         const drawDuration = 60;
         const fadeDelay = 15; // 多等一點才開始淡出
         const fadeDuration = 45; // 比直線久
-    
+
         const elapsed = frameCounter - conn.startFrame;
         const fadeStart = drawDuration + fadeDelay;
         let alpha = 255;
         if (elapsed > fadeStart) {
-          const fadeProgress = constrain((elapsed - drawDuration) / fadeDuration, 0, 1);
+          const fadeProgress = constrain(
+            (elapsed - drawDuration) / fadeDuration,
+            0,
+            1
+          );
           alpha = lerp(255, 0, fadeProgress);
           // if (fadeProgress === 1) continue;
         }
-    
+
         let progress = constrain(elapsed / drawDuration, 0, 1);
-    
+
         let x1 = conn.top.x;
         let y1 = conn.top.y;
         let x2 = conn.bottom.x;
         let y2 = conn.bottom.y;
-    
+
         let cp1x = lerp(x1, x2, 0.3);
         let cp1y = lerp(y1, y2, 0.3) - 60;
         let cp2x = lerp(x1, x2, 0.7);
         let cp2y = lerp(y1, y2, 0.7) - 60;
-    
+
         colorMode(RGB);
         const c = conn.lineColor ?? color(0);
         stroke(red(c), green(c), blue(c), alpha);
@@ -1066,7 +1083,6 @@ function draw() {
         colorMode(HSL, 360, 100, 100);
       }
     }
-    
   }
 
   let currentQuote = "";
