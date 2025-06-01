@@ -15,11 +15,17 @@ let frameCounter = 0;
 const phase1StartFrame = 0;
 const phase1EndFrame = 600;
 
+let phase3ColorList = [];
+let phase3ShuffleTimer = 0;
+
+const phase3ShuffleDelay = 600; // adjust this delay to your needs
+
+
 const phase2StartFrame = phase1EndFrame + 40;
 const phase2EndFrame = phase2StartFrame + 1500;
 
 const phase3StartFrame = phase2EndFrame + 40;
-const phase3EndFrame = phase3StartFrame + 1000;
+const phase3EndFrame = phase3StartFrame + 1500;
 
 const phase4StartFrame = phase3EndFrame + 40;
 const phase4EndFrame = phase4StartFrame + 2000;
@@ -55,7 +61,7 @@ const phaseQuote = {
     "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
   phase5:
     "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar from “Locating Migration: Rescaling Cities and Migrants” (2009)",
-  phase6: "ssss",
+  phase6: "  ",
 };
 
 const ethnics = [
@@ -91,6 +97,45 @@ const ethnics = [
   "Mixed Black",
   "Black",
 ];
+
+function splitLabel(label) {
+  const wrapMap = {
+    "White": ["White"],
+    "Chinese": ["Chinese"],
+    "Japanese": ["Japanese"],
+    "Hindu": ["Hindu"],
+    "Korean": ["Korean"],
+    "Philippino": ["Philippino"], 
+    "Vietnamese": ["Vietnamese"],
+    "Asian Indian": ["Asian", "Indian"],
+    "Guamanian or Chamorro": ["Guamanian or", "Chamorro"],
+    "Samoan": ["Samoan"],
+    "Guamanian": ["Guamanian"],
+    "Part Hawaiian": ["Part", "Hawaiian"],
+    "Hawaiian": ["Hawaiian"],
+    "Mexican": ["Mexican"],
+    "Other API": ["Other", "API"],
+    "Other Asian": ["Other", "Asian"],
+    "Other Pacific Islander": ["Other Pacific", "Islander"],
+    "Other Spanish": ["Other", "Spanish"],
+    "Other Spanish or Hispanic": ["Other Spanish", "or Hispanic"],
+    "Other Spanish, Hispanic, or Latino": ["Other Spanish,", "Hispanic or Latino"],
+    "Other": ["Other"],
+    "American Indian or Alaska Native": ["American Indian", "or Alaska Native"],
+    "Eskimo": ["Eskimo"],
+    "Aleut": ["Aleut"],
+    "Indian": ["Indian"],
+    "Cuban": ["Cuban"],
+    "Puerto Rican": ["Puerto", "Rican"],
+    "Central or South American": ["Central or", "South American"],
+    "Mexican, Mexican-American, Chicano": ["Mexican,", "Mexican-American, Chicano"],
+    "Mixed Black": ["Mixed", "Black"],
+    "Black": ["Black"],
+  };
+
+  return wrapMap[label] ?? [label]; // fallback to one line if not matched
+}
+
 const ethnicColors = {
   White: "#56804d",
   Chinese: "#16457a",
@@ -98,7 +143,7 @@ const ethnicColors = {
   Hindu: "#5167ad",
   Korean: "#54ceff",
   Philippino: "#78c8e3",
-  Vietanmese: "#2a5a70",
+  Vietnamese: "#2a5a70",
   "Asian Indian": "#242896",
   "Guamanian or Chamorro": "#824fdb",
   Samoan: "#5a0ba3",
@@ -112,8 +157,8 @@ const ethnicColors = {
   "Other Spanish": "#828c16",
   "Other Spanish or Hispanic": "#b3ad15",
   "Other Spanish, Hispanic, or Latino": "#d1c32a",
-  "Other (rainbow)": "#ff0000",
-  "Alaska Native": "#e36200",
+  "Other": "#ff0000",
+  "American Indian or Alaska Native": "#e36200",
   Eskimo: "#9c4e13",
   "American Indian": "#9c6a13",
   Aleut: "#943900",
@@ -155,7 +200,7 @@ const firstGroups = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: [],
+  Other: [1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970, 1980, 1990, 2000, 2010, 2020],
   "American Indian or Alaska Native": [2000, 2010, 2020],
   Eskimo: [1960, 1980],
   Aleut: [1960, 1970, 1980, 1990],
@@ -294,13 +339,15 @@ const fifthGroup = {
   "Other Spanish": [1970],
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
-  Other: [],
+  Other: [1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970, 1980, 1990, 2000, 2010, 2020],
 };
 
 const yearLabels = [
   1790, 1800, 1810, 1820, 1830, 1840, 1850, 1860, 1870, 1880, 1890, 1900, 1910,
   1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, 2030,
 ];
+
+
 
 function setup() {
   createCanvas(1700, 800);
@@ -316,7 +363,7 @@ function setup() {
 
   for (let i = 0; i < ethnics.length; i++) {
     let x = rectX + margin + i * spacingTop;
-    topCircles.push({ x, y: yTop, name: ethnics[i] });
+    topCircles.push({ x, y: yTop, name: ethnics[i], nameLines:splitLabel(ethnics[i]) });
 
     const hex = ethnicColors[ethnics[i]];
     if (hex) {
@@ -401,7 +448,7 @@ function setup() {
       const x2 = baseBlack.x;
       const baseY = baseMixed.y;
 
-      const fixedColors = ["#FF5F59", "#FF6A6B", "#FF767D", "#FF818F"];
+      const fixedColors = ["#ff928a", "#ff928a", "#ff928a", "#FF818F"];
       const count = fixedColors.length;
       const tMin = 0.2;
       const tMax = 0.8;
@@ -752,6 +799,60 @@ function draw() {
     frameCounter >= phase3StartFrame && frameCounter <= phase3EndFrame;
   const thirdGroupSet = new Set(Object.keys(thirdGroups));
 
+  if (isPhase3) {
+    // Capture the visible topCircle colors for phase 3
+    phase3ColorList = topCircles
+      .map((pt, i) => {
+        if (thirdGroupSet.has(pt.name)) {
+          return { name: pt.name, originalIndex: i, color: topColors[i] };
+        }
+        return null;
+      })
+      .filter(c => c !== null);
+  }
+
+  if (isPhase3) {
+    const timeIntoPhase3 = frameCounter - phase3StartFrame;
+  
+    // Wait until delay has passed before shuffling
+    if (timeIntoPhase3 >= phase3ShuffleDelay) {
+      const progress = (timeIntoPhase3 - phase3ShuffleDelay) / (phase3EndFrame - phase3StartFrame - phase3ShuffleDelay);
+  
+      const minInterval = 2;   // fastest
+      const maxInterval = 20;  // slowest
+      const interval = Math.floor(lerp(maxInterval, minInterval, constrain(progress, 0, 1)));
+  
+      if (frameCounter % interval === 0 && phase3ColorList.length > 1) {
+        // Shuffle using Fisher-Yates
+        for (let i = phase3ColorList.length - 1; i > 0; i--) {
+          let j = Math.floor(random(i + 1));
+          [phase3ColorList[i].color, phase3ColorList[j].color] = [phase3ColorList[j].color, phase3ColorList[i].color];
+        }
+  
+        // Apply to topColors
+        for (let item of phase3ColorList) {
+          topColors[item.originalIndex] = item.color;
+        }
+      }
+    }
+  }
+
+  // let bgAlpha = 0;
+
+  // if (frameCounter >= phase6ClearStartFrame) {
+  //   const disappearInterval = 5;
+  //   const step = Math.floor(
+  //     (frameCounter - phase6ClearStartFrame) / disappearInterval
+  //   );
+  //   const maxIndex = topCircles.length - 1;
+  //   const fadeProgress = constrain(step*10 / maxIndex, 0, 1);
+  //   bgAlpha = lerp(0, 255, fadeProgress);
+  
+  //   noStroke();
+  //   fill(255, bgAlpha);
+  //   rect(0, 0, width, height);
+  // }
+
   for (let i = 0; i < topCircles.length; i++) {
     const pt = topCircles[i];
     const isAsian = asianGroups.has(pt.name);
@@ -781,14 +882,20 @@ function draw() {
       if (i >= maxIndex - step) visible = false;
     }
 
+
+  // 👇 Only draw if both logical group visibility and fadeAlpha allow
     if (visible) {
       fill(topColors[i]);
       noStroke();
-      ellipse(pt.x, pt.y, 8);
-      fill(255);
+      ellipse(pt.x, pt.y, 7);
+      fill(255); // 👈 fade text too
       textAlign(CENTER, BOTTOM);
-      textSize(8);
-      text(pt.name, pt.x, pt.y - 10);
+      textSize(6);
+      const nameLines = pt.nameLines;
+      for (let j = 0; j < nameLines.length; j++) {
+        let lineY = pt.y - 10 - (nameLines.length - 1 - j) * 9; // stack upward
+        text(nameLines[j], pt.x, lineY);
+      }
     }
   }
 
@@ -981,19 +1088,26 @@ function draw() {
         let x2 = lerp(x1, conn.top.x, progress);
         let y2 = lerp(y1, conn.top.y, progress);
 
+        // ==== Fading logic ===
         let alpha = 255;
+        let weight =0.9;
         if (elapsed >= fadeStart) {
           const fadeProgress = constrain(
             (elapsed - fadeStart) / fadeDuration,
             0,
             1
           );
-          alpha = lerp(255, 0, fadeProgress);
+          alpha = lerp(255, 80, fadeProgress); // alpha for phase 2
+            // Only fade weight if Mixed Black
+          if (conn.top.name === "Mixed Black") {
+            weight = lerp(0.9, 0.01, fadeProgress);
+          }
         }
 
         colorMode(RGB);
         const c = conn.customColor ?? topColors[conn.topGroup];
         stroke(red(c), green(c), blue(c), alpha);
+        strokeWeight(weight);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
@@ -1012,8 +1126,8 @@ function draw() {
             0,
             1
           );
-          alpha = lerp(255, 0, fadeProgress);
-          if (fadeProgress === 1) continue;
+          alpha = lerp(255, 120, fadeProgress);  // alpha for island striaght line
+          // if (fadeProgress === 1) continue;
         }
 
         let progress = constrain(elapsed / drawDuration, 0, 1);
@@ -1089,7 +1203,7 @@ function draw() {
             0,
             1
           );
-          alpha = lerp(255, 0, fadeProgress);
+          alpha = lerp(255, 100, fadeProgress); // alpha for curve
           // if (fadeProgress === 1) continue;
         }
 
