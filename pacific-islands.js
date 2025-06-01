@@ -11,21 +11,36 @@ let rectW = 1440;
 let rectH = 340;
 let titleH = 20;
 
+// title image
+
+let titleImages = {};
+let currentPhase = 1; // or update dynamically
+
+function preload() {
+  titleImages = {
+    1: loadImage("title/Opening.png"),
+    2: loadImage("title/Chapter 1.png"),
+    3: loadImage("title/Chapter 2.png"),
+    4: loadImage("title/Chapter 3.png"),
+    5: loadImage("title/Chapter 4.png"),
+    6: loadImage("title/Closing.png"),
+  };
+}
+
+// ======= FRAME SETTING SECTION =====
 let frameCounter = 0;
 const phase1StartFrame = 0;
 const phase1EndFrame = 600;
 
 let phase3ColorList = [];
-let phase3ShuffleTimer = 0;
 
-const phase3ShuffleDelay = 600; // adjust this delay to your needs
-
+const phase3ShuffleDelay = 1280; // adjust this delay to your needs
 
 const phase2StartFrame = phase1EndFrame + 40;
 const phase2EndFrame = phase2StartFrame + 1500;
 
 const phase3StartFrame = phase2EndFrame + 40;
-const phase3EndFrame = phase3StartFrame + 1500;
+const phase3EndFrame = phase3StartFrame + 1800;
 
 const phase4StartFrame = phase3EndFrame + 40;
 const phase4EndFrame = phase4StartFrame + 2000;
@@ -70,26 +85,27 @@ const ethnics = [
   "Japanese",
   "Hindu",
   "Korean",
-  "Philippino",
+  "Philippino", 
   "Vietnamese",
   "Asian Indian",
-  "Guamanian or Chamorro",
   "Samoan",
+  "Guamanian or Chamorro",
   "Guamanian",
   "Part Hawaiian",
   "Hawaiian",
-  "Mexican",
-  "Other API",
   "Other Asian",
+  "Other API",
   "Other Pacific Islander",
   "Other Spanish",
   "Other Spanish or Hispanic",
   "Other Spanish, Hispanic, or Latino",
   "Other",
-  "American Indian or Alaska Native",
+  "Alaska Native",
   "Eskimo",
+  "American Indian",
   "Aleut",
   "Indian",
+  "Mexican",
   "Cuban",
   "Puerto Rican",
   "Central or South American",
@@ -108,27 +124,28 @@ function splitLabel(label) {
     "Philippino": ["Philippino"], 
     "Vietnamese": ["Vietnamese"],
     "Asian Indian": ["Asian", "Indian"],
-    "Guamanian or Chamorro": ["Guamanian or", "Chamorro"],
     "Samoan": ["Samoan"],
+    "Guamanian or Chamorro": ["Guamanian or", "Chamorro"],
     "Guamanian": ["Guamanian"],
     "Part Hawaiian": ["Part", "Hawaiian"],
     "Hawaiian": ["Hawaiian"],
-    "Mexican": ["Mexican"],
-    "Other API": ["Other", "API"],
     "Other Asian": ["Other", "Asian"],
+    "Other API": ["Other", "API"],
     "Other Pacific Islander": ["Other Pacific", "Islander"],
     "Other Spanish": ["Other", "Spanish"],
     "Other Spanish or Hispanic": ["Other Spanish", "or Hispanic"],
     "Other Spanish, Hispanic, or Latino": ["Other Spanish,", "Hispanic or Latino"],
     "Other": ["Other"],
-    "American Indian or Alaska Native": ["American Indian", "or Alaska Native"],
+    "Alaska Native": ["Alaska Native"],
     "Eskimo": ["Eskimo"],
+    "American Indian": ["American Indian"],
     "Aleut": ["Aleut"],
     "Indian": ["Indian"],
+    "Mexican": ["Mexican"],
     "Cuban": ["Cuban"],
     "Puerto Rican": ["Puerto", "Rican"],
-    "Central or South American": ["Central or", "South American"],
-    "Mexican, Mexican-American, Chicano": ["Mexican,", "Mexican-American, Chicano"],
+    "Central or South American": ["Central or South", "American"],
+    "Mexican, Mexican-American, Chicano": ["Mexican-Am.,", "Mexican, Chicano"],
     "Mixed Black": ["Mixed", "Black"],
     "Black": ["Black"],
   };
@@ -138,36 +155,36 @@ function splitLabel(label) {
 
 const ethnicColors = {
   White: "#56804d",
-  Chinese: "#16457a",
-  Japanese: "#32758a",
-  Hindu: "#5167ad",
-  Korean: "#54ceff",
-  Philippino: "#78c8e3",
-  Vietnamese: "#2a5a70",
-  "Asian Indian": "#242896",
-  "Guamanian or Chamorro": "#824fdb",
-  Samoan: "#5a0ba3",
+  Chinese: "#799ae0",
+  Japanese: "#64e8ed",
+  Hindu: "#42b7ed",
+  Korean: "#5789f2",
+  Philippino: "#a6e3f7",
+  Vietnamese: "#009dff",
+  "Asian Indian": "#478ff5",
+  Samoan: "#b694ff",
+  "Guamanian or Chamorro": "#9c43e0",
   Guamanian: "#bb77e6",
-  "Part Hawaiian": "#4d2e85",
-  Hawaiian: "#6a16a6",
-  Mexican: "#c4b649",
-  "Other Asian": "#141e7d",
-  "Other API": "#382b99",
-  "Other Pacific Islander": "#522bbd",
+  "Part Hawaiian": "#bca4db",
+  Hawaiian: "#8955cf",
+  "Other Asian": "#70c4ff",
+  "Other API": "#7086ff",
+  "Other Pacific Islander": "#7649f2",
   "Other Spanish": "#828c16",
   "Other Spanish or Hispanic": "#b3ad15",
   "Other Spanish, Hispanic, or Latino": "#d1c32a",
   "Other": "#ff0000",
-  "American Indian or Alaska Native": "#e36200",
-  Eskimo: "#9c4e13",
-  "American Indian": "#9c6a13",
-  Aleut: "#943900",
-  Indian: "#eb935b",
+  "Alaska Native": "#ffc496",
+  Eskimo: "#f78025",
+  "American Indian": "#eb9e1a",
+  Aleut: "#ff6200",
+  Indian: "#db8348",
+  Mexican: "#f3ff73",
   Cuban: "#e8d900",
-  "Puerto Rican": "#ab8b16",
+  "Puerto Rican": "#cfa81d",
   "Central or South American": "#adb519",
-  "Mexican, Mexican-American, Chicano": "#c4b649",
-  "Mixed Black": "#ff928a",
+  "Mexican, Mexican-American, Chicano": "#f2e89b",
+  "Mixed Black": "#de6f6f",
   Black: "#FFC0CB",
 };
 
@@ -193,7 +210,6 @@ const firstGroups = {
   Guamanian: [1980, 1990, 2000],
   "Part Hawaiian": [1960],
   Hawaiian: [1960, 1970, 1980, 1990, 2000, 2010],
-  Mexican: [1930, 1970],
   "Other API": [1990],
   "Other Asian": [2000, 2010, 2020],
   "Other Pacific Islander": [2000, 2010],
@@ -201,14 +217,16 @@ const firstGroups = {
   "Other Spanish or Hispanic": [1980, 1990],
   "Other Spanish, Hispanic, or Latino": [2000, 2010, 2020],
   Other: [1790, 1800, 1810, 1820, 1830, 1840, 1910, 1920, 1930, 1940, 1950, 1970, 1980, 1990, 2000, 2010, 2020],
-  "American Indian or Alaska Native": [2000, 2010, 2020],
+  "Alaska Native": [2000, 2010, 2020],
   Eskimo: [1960, 1980],
   Aleut: [1960, 1970, 1980, 1990],
+  "American Indian":[1960, 1970, 1980, 1990],
   Indian: [1860, 1870, 1880, 1890, 1900, 1910, 1920, 1930, 1940, 1950],
   Cuban: [1970, 1980, 1990, 2000, 2010, 2020],
   "Puerto Rican": [1970, 1980, 1990, 2000, 2010, 2020],
   "Central or South American": [1970],
   "Mexican, Mexican-American, Chicano": [1980, 1990, 2000, 2010, 2020],
+  Mexican: [1930, 1970],
   "Mixed Black": [1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920],
   Black: [],
 };
@@ -315,21 +333,21 @@ const fourthGroups = {
 
 // 島嶼位置
 const islandGroups = [
-  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 980, y: 30 },
+  { label: "Hawaii", groups: ["Hawaiian", "Part Hawaiian"], x: 1080, y: 80 },
   {
     label: "Guam",
     groups: ["Guamanian", "Guamanian or Chamorro"],
-    x: 830,
-    y: 40,
+    x: 930,
+    y: 90,
   },
   {
     label: "Northern Mariana",
     groups: ["Guamanian or Chamorro"],
-    x: 780,
-    y: 25,
+    x: 880,
+    y: 75,
   },
-  { label: "American Samoa", groups: ["Samoan"], x: 900, y: 60 },
-  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 950, y: 40 },
+  { label: "American Samoa", groups: ["Samoan"], x: 1000, y: 110 },
+  { label: "Other Pacific", groups: ["Other Pacific Islander"], x: 1050, y: 90 },
 ];
 
 const fifthGroup = {
@@ -344,10 +362,31 @@ const fifthGroup = {
 
 const yearLabels = [
   1790, 1800, 1810, 1820, 1830, 1840, 1850, 1860, 1870, 1880, 1890, 1900, 1910,
-  1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, 2030,
+  1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, 2050,
 ];
 
+function drawGradientLine(x1, y1, x2, y2, colors, thickness) {
+  let steps = 30;
+  let dx = x2 - x1;
+  let dy = y2 - y1;
+  let len = dist(x1, y1, x2, y2);
+  let nx = -dy / len;
+  let ny = dx / len;
 
+  for (let i = -steps; i <= steps; i++) {
+    let distFromCenter = map(abs(i), 0, steps, 0, 1);
+    let colorIndex = distFromCenter * (colors.length - 1);
+    let low = floor(colorIndex);
+    let high = ceil(colorIndex);
+    let amt = colorIndex - low;
+    let col = lerpColor(colors[low], colors[high], amt);
+    stroke(col);
+    strokeWeight(1);
+
+    let offset = (i * thickness) / steps;
+    line(x1 + nx * offset, y1 + ny * offset, x2 + nx * offset, y2 + ny * offset);
+  }
+}
 
 function setup() {
   createCanvas(1700, 800);
@@ -430,99 +469,99 @@ function setup() {
     totalFrame += animationPerYear + pauseBetweenYears;
   }
 
-  // 🔸 2. Mixed Black 右側額外 5 點（透明圓），塞進 spacing 範圍內
-  const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
-  const spacing = (rectW - 60) / (ethnics.length - 1);
-  mixedExtraCircles = []; // ⬅️ global 變數
-  const mixedExtraConnections = [];
+  // // 🔸 2. Mixed Black 右側額外 5 點（透明圓），塞進 spacing 範圍內
+  // const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
+  // const spacing = (rectW - 60) / (ethnics.length - 1);
+  // mixedExtraCircles = []; // ⬅️ global 變數
+  // const mixedExtraConnections = [];
 
-  if (baseMixed) {
-    const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
-    const baseBlack = topCircles.find((t) => t.name === "Black");
+  // if (baseMixed) {
+  //   const baseMixed = topCircles.find((t) => t.name === "Mixed Black");
+  //   const baseBlack = topCircles.find((t) => t.name === "Black");
 
-    mixedExtraCircles = [];
-    const mixedExtraConnections = [];
+  //   mixedExtraCircles = [];
+  //   const mixedExtraConnections = [];
 
-    if (baseMixed && baseBlack) {
-      const x1 = baseMixed.x;
-      const x2 = baseBlack.x;
-      const baseY = baseMixed.y;
+  //   if (baseMixed && baseBlack) {
+  //     const x1 = baseMixed.x;
+  //     const x2 = baseBlack.x;
+  //     const baseY = baseMixed.y;
 
-      const fixedColors = ["#ff928a", "#ff928a", "#ff928a", "#FF818F"];
-      const count = fixedColors.length;
-      const tMin = 0.2;
-      const tMax = 0.8;
+  //     const fixedColors = ["#de6f6f", "#de6f6f", "#de6f6f", "#FF818F"];
+  //     const count = fixedColors.length;
+  //     const tMin = 0.2;
+  //     const tMax = 0.8;
 
-      for (let i = 0; i < count; i++) {
-        const t = map(i, 0, count - 1, tMin, tMax);
-        const x = lerp(baseMixed.x, baseBlack.x, t);
-        const y = baseMixed.y;
-        const c = color(fixedColors[i]);
-        const pt = { x, y, name: "MixedBlackExtra-" + i, alpha: 0 };
-        mixedExtraCircles.push({ pt, color: c });
-      }
+  //     for (let i = 0; i < count; i++) {
+  //       const t = map(i, 0, count - 1, tMin, tMax);
+  //       const x = lerp(baseMixed.x, baseBlack.x, t);
+  //       const y = baseMixed.y;
+  //       const c = color(fixedColors[i]);
+  //       const pt = { x, y, name: "MixedBlackExtra-" + i, alpha: 0 };
+  //       mixedExtraCircles.push({ pt, color: c });
+  //     }
 
-      // 下面這段保留你原本的連線邏輯不變
-      const mixedYears = [
-        1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
-        1970, 1980, 1990, 2000, 2010, 2020,
-      ];
-      totalFrame = 0;
+  //     // 下面這段保留你原本的連線邏輯不變
+  //     const mixedYears = [
+  //       1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
+  //       1970, 1980, 1990, 2000, 2010, 2020,
+  //     ];
+  //     totalFrame = 0;
 
-      for (let year of mixedYears) {
-        const bottomPt = bottomCircles.find((b) => b.year === year);
-        if (!bottomPt) continue;
+  //     for (let year of mixedYears) {
+  //       const bottomPt = bottomCircles.find((b) => b.year === year);
+  //       if (!bottomPt) continue;
 
-        const yearStart = phase2StartFrame + totalFrame;
+  //       const yearStart = phase2StartFrame + totalFrame;
 
-        for (const { pt, color } of mixedExtraCircles) {
-          mixedExtraConnections.push({
-            top: pt,
-            bottom: bottomPt,
-            topGroup: -1,
-            customColor: color,
-            startFrame: yearStart,
-            phase: 2,
-          });
-        }
+  //       for (const { pt, color } of mixedExtraCircles) {
+  //         mixedExtraConnections.push({
+  //           top: pt,
+  //           bottom: bottomPt,
+  //           topGroup: -1,
+  //           customColor: color,
+  //           startFrame: yearStart,
+  //           phase: 2,
+  //         });
+  //       }
 
-        totalFrame += animationPerYear + pauseBetweenYears;
-      }
+  //       totalFrame += animationPerYear + pauseBetweenYears;
+  //     }
 
-      connections.push(...mixedExtraConnections);
-    }
+  //     connections.push(...mixedExtraConnections);
+  //   }
 
-    // 🔸 連接到 Mixed Black 相同年份
-    const mixedYears = [
-      1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
-      1970, 1980, 1990, 2000, 2010, 2020,
-    ];
-    if (mixedYears) {
-      totalFrame = 0; // reset 時間
+  //   // 🔸 連接到 Mixed Black 相同年份
+  //   const mixedYears = [
+  //     1850, 1860, 1870, 1880, 1880, 1890, 1910, 1920, 1930, 1940, 1950, 1960,
+  //     1970, 1980, 1990, 2000, 2010, 2020,
+  //   ];
+  //   if (mixedYears) {
+  //     totalFrame = 0; // reset 時間
 
-      for (let year of mixedYears) {
-        const bottomPt = bottomCircles.find((b) => b.year === year);
-        if (!bottomPt) continue;
+  //     for (let year of mixedYears) {
+  //       const bottomPt = bottomCircles.find((b) => b.year === year);
+  //       if (!bottomPt) continue;
 
-        const yearStart = phase2StartFrame + totalFrame;
+  //       const yearStart = phase2StartFrame + totalFrame;
 
-        for (const { pt, color } of mixedExtraCircles) {
-          mixedExtraConnections.push({
-            top: pt,
-            bottom: bottomPt,
-            topGroup: -1,
-            customColor: color,
-            startFrame: yearStart,
-            phase: 2,
-          });
-        }
+  //       for (const { pt, color } of mixedExtraCircles) {
+  //         mixedExtraConnections.push({
+  //           top: pt,
+  //           bottom: bottomPt,
+  //           topGroup: -1,
+  //           customColor: color,
+  //           startFrame: yearStart,
+  //           phase: 2,
+  //         });
+  //       }
 
-        totalFrame += animationPerYear + pauseBetweenYears;
-      }
-    }
+  //       totalFrame += animationPerYear + pauseBetweenYears;
+  //     }
+  //   }
 
-    connections.push(...mixedExtraConnections);
-  }
+  //   connections.push(...mixedExtraConnections);
+  // }
 
   // ✅ Phase 3 修改版：Mexican 優先，族群之間有頓點
   const thirdGroupOrder = [
@@ -737,49 +776,38 @@ function setup() {
 function draw() {
   background(0);
   noFill();
-  stroke(0);
+  stroke(50);
   rect(rectX, rectY, rectW, rectH);
 
   // 顯示當前階段的標題
-  let currentTitle = "";
   if (frameCounter >= phase1StartFrame && frameCounter < phase1EndFrame) {
-    currentTitle = phaseTitles.phase1;
-  } else if (
-    frameCounter >= phase2StartFrame &&
-    frameCounter < phase2EndFrame
-  ) {
-    currentTitle = phaseTitles.phase2;
-  } else if (
-    frameCounter >= phase3StartFrame &&
-    frameCounter < phase3EndFrame
-  ) {
-    currentTitle = phaseTitles.phase3;
-  } else if (
-    frameCounter >= phase4StartFrame &&
-    frameCounter < phase4EndFrame
-  ) {
-    currentTitle = phaseTitles.phase4;
-  } else if (
-    frameCounter >= phase5StartFrame &&
-    frameCounter < phase5EndFrame
-  ) {
-    currentTitle = phaseTitles.phase5;
-  } else if (
-    frameCounter >= phase6StartFrame &&
-    frameCounter < phase6EndFrame
-  ) {
-    currentTitle = phaseTitles.phase6;
+    currentPhase = 1;
+  } else if (frameCounter >= phase2StartFrame && frameCounter < phase2EndFrame) {
+    currentPhase = 2;
+  } else if (frameCounter >= phase3StartFrame && frameCounter < phase3EndFrame) {
+    currentPhase = 3;
+  } else if (frameCounter >= phase4StartFrame && frameCounter < phase4EndFrame) {
+    currentPhase = 4;
+  } else if (frameCounter >= phase5StartFrame && frameCounter < phase5EndFrame) {
+    currentPhase = 5;
+  } else if (frameCounter >= phase6StartFrame && frameCounter < phase6EndFrame) {
+    currentPhase = 6;
   }
 
-  if (currentTitle) {
-    noStroke();
-    fill(255);
-    textSize(16); // 比預設小一點
-    textStyle(NORMAL); // 字體細
-    textFont("sans-serif"); // 確保是乾淨字體
-    textAlign(LEFT, BOTTOM);
-    text(currentTitle, rectX + 30, rectY - 40); // 左上角位置
+  let img = titleImages[currentPhase];
+  if (img) {
+    imageMode(CORNER);
+    image(img, rectX + 10, rectY - 80, 800, 50);
   }
+// else if (currentPhaseKey && phaseTitles[currentPhaseKey]) {
+//   noStroke();
+//   fill(255);
+//   textSize(16);
+//   textStyle(NORMAL);
+//   textFont("sans-serif");
+//   textAlign(LEFT, BOTTOM);
+//   text(phaseTitles[currentPhaseKey], rectX + 30, rectY - 40);
+// }
 
   const asianGroups = new Set([
     "Black",
@@ -818,7 +846,7 @@ function draw() {
     if (timeIntoPhase3 >= phase3ShuffleDelay) {
       const progress = (timeIntoPhase3 - phase3ShuffleDelay) / (phase3EndFrame - phase3StartFrame - phase3ShuffleDelay);
   
-      const minInterval = 2;   // fastest
+      const minInterval = 3;   // fastest
       const maxInterval = 20;  // slowest
       const interval = Math.floor(lerp(maxInterval, minInterval, constrain(progress, 0, 1)));
   
@@ -902,11 +930,11 @@ function draw() {
   for (let i = 0; i < bottomCircles.length; i++) {
     const pt = bottomCircles[i];
 
-    if (pt.year === 2030 && frameCounter < phase6StartFrame) continue;
+    if (pt.year === 2050 && frameCounter < phase6StartFrame) continue;
 
     const disappearInterval = 5;
     // ✅ 隱藏邏輯：phase6 從右至左不顯示
-    if (pt.year !== 2030 && frameCounter >= phase6ClearStartFrame) {
+    if (pt.year !== 2050 && frameCounter >= phase6ClearStartFrame) {
       const step = Math.floor(
         (frameCounter - phase6ClearStartFrame) / disappearInterval
       );
@@ -1088,8 +1116,10 @@ function draw() {
         let x2 = lerp(x1, conn.top.x, progress);
         let y2 = lerp(y1, conn.top.y, progress);
 
+
         // ==== Fading logic ===
         let alpha = 255;
+        let alpha_mix = 200;
         let weight =0.9;
         if (elapsed >= fadeStart) {
           const fadeProgress = constrain(
@@ -1097,19 +1127,39 @@ function draw() {
             0,
             1
           );
-          alpha = lerp(255, 80, fadeProgress); // alpha for phase 2
-            // Only fade weight if Mixed Black
-          if (conn.top.name === "Mixed Black") {
-            weight = lerp(0.9, 0.01, fadeProgress);
-          }
+          alpha_mix = lerp(255, 60, fadeProgress); // alpha for phase 2
+          alpha= lerp(255, 120, fadeProgress);
         }
 
-        colorMode(RGB);
-        const c = conn.customColor ?? topColors[conn.topGroup];
-        stroke(red(c), green(c), blue(c), alpha);
-        strokeWeight(weight);
-        line(x1, y1, x2, y2);
-        colorMode(HSL, 360, 100, 100);
+        if (conn.top.name === "Mixed Black") {
+          // Define your gradient color palette
+          const baseHexes = ['#FF5347', '#FF5F59', '#FF6A6B', '#FF767D', '#FF818F'];
+          const alphaSteps = [40, 100, 255, 100, 40];
+
+          let baseGradient = baseHexes.map((hex, idx) => {
+            let c = color(hex);
+            c.setAlpha(alphaSteps[idx]);
+            return c;
+          });
+
+          const fadeProgressMix = constrain((frameCounter - fadeStart) / fadeDuration, 0, 1);
+          const fadeFactorMix = lerp(1, 0.4, fadeProgressMix); // or fade to 0.2, 0, etc.
+
+          let fadedGradientMix = baseGradient.map(col => {
+            let a = col._getAlpha ? col._getAlpha() * fadeFactorMix : 255 * fadeFactorMix;
+            return color(red(col), green(col), blue(col), a);
+          });
+
+          drawGradientLine(x1, y1, x2, y2, fadedGradientMix, 3); // adjust thickness
+        } else {
+          colorMode(RGB);
+          const c = conn.customColor ?? topColors[conn.topGroup];
+          stroke(red(c), green(c), blue(c), alpha);
+          strokeWeight(weight);
+          line(x1, y1, x2, y2);
+          colorMode(HSL, 360, 100, 100);
+        }
+
         continue;
       }
 
