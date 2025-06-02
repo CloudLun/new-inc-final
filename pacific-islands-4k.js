@@ -80,24 +80,24 @@ const phaseTitles = {
 };
 const phaseQuote = {
   phase1:
-    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi",
+    "“With racial statistics, one can ‘quantify’ what one subjectively perceived as a problem to be studied using objective methods. Because such statistics look and sound scientific... great weight is accorded them, even if their import is in fact distorted by subjective predispositions.” Tukufu Zuberi from Thicker than Blood: How Racial Statistics Lie (2001)",
   phase2:
-    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki ",
+    "“While Blackness is policed through the one-drop rule, making it an essentialized category, Asian Americans are racialized through ethnic and national origin distinctions that produce multiple racialized positions within the same racial group—revealing the unevenness of racial classification in the U.S.” Claire Jean Ki from “The Racial Triangulation of Asian Americans” (1999)",
   phase3:
-    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez ",
+    "“The panethnic label ‘Hispanic’ elides the complex racial and ethnic diversity within Latino populations, reducing distinct Native American, Black, and European ancestries into a monolithic category that serves bureaucratic convenience more than social reality.” Leah R. Vázquez from “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
   phase4:
-    "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft",
+    "“Census classifications in Oceania are deeply entangled with colonial legacies that sought to map, manage, and control Indigenous populations, transforming living peoples into racialized categories for imperial governance.” Brenda L Croft From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
   phase5:
-    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar",
+    "“Census categories such as ‘Other’ reflect the state’s failure to recognize the fluid and hybrid nature of identities, imposing fixed categories that marginalize those who do not fit neatly within official racial taxonomies.” Nina G. Schiller & Ayse Caglar from “Locating Migration: Rescaling Cities and Migrants” (2009)",
   phase6: "  ",
 };
 
 const phaseSource = {
-  phase1:"From Thicker than Blood: How Racial Statistics Lie (2001)",
-  phase2:"From “The Racial Triangulation of Asian Americans” (1999)",
-  phase3:"From “The Discourse of ‘Hispanic’ and the Racialization of Latinos” (2005)",
-  phase4:"From “Making Kin: A Feminist Indigenous Approach to Oceania” (2018)",
-  phase5:"From “Locating Migration: Rescaling Cities and Migrants” (2009)",
+  phase1:"Data Source: US Census Bureau",
+  phase2:"Data Source: US Census Bureau",
+  phase3:"Data Source: US Census Bureau",
+  phase4:"Data Source: US Census Bureau",
+  phase5:"Data Source: US Census Bureau",
   phase6:"",
 }
 
@@ -198,7 +198,7 @@ const ethnicColors = {
   "Other Spanish": "#828c16",
   "Other Spanish or Hispanic": "#b3ad15",
   "Other Spanish, Hispanic, or Latino": "#d1c32a",
-  Other: "#ff0000",
+  Other: "#757575",
   "Alaska Native": "#ffc496",
   Eskimo: "#f78025",
   "American Indian": "#eb9e1a",
@@ -212,6 +212,40 @@ const ethnicColors = {
   "Mixed Black": "#de6f6f",
   Black: "#FFC0CB",
 };
+
+function drawGlowLine(x1, y1, x2, y2, coreColorStr, baseAlpha, scale = 1) {
+  // Ensure we’re in RGB mode
+  colorMode(RGB, 255);
+  
+  // Construct color object from string
+  let col;
+  try {
+    col = color(coreColorStr);
+  } catch (e) {
+    console.warn("Invalid coreColor passed to drawGlowLine:", coreColorStr);
+    col = color(255, 0, 0); // fallback to red
+  }
+
+  const r = red(col);
+  const g = green(col);
+  const b = blue(col);
+
+  // Glow layers from wide to narrow
+  for (let w = 8; w >= 2; w--) {
+    const glowAlpha = map(w, 8, 2, 20, 80) * (baseAlpha / 255); 
+    stroke(r, g, b, glowAlpha);
+    strokeWeight(w * scale);
+    line(x1, y1, x2, y2);
+  }
+
+  // Core sharp line
+  stroke(r, g, b, baseAlpha);
+  strokeWeight(0.9 * scale);
+  line(x1, y1, x2, y2);
+
+  // Restore HSL if rest of your code relies on it
+  colorMode(HSL, 360, 100, 100);
+}
 
 const firstGroups = {
   White: [],
@@ -411,33 +445,39 @@ const yearLabels = [
   1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020, 2050,
 ];
 
-function drawGradientLine(x1, y1, x2, y2, colors, thickness) {
-  let steps = 30;
-  let dx = x2 - x1;
-  let dy = y2 - y1;
-  let len = dist(x1, y1, x2, y2);
-  let nx = -dy / len;
-  let ny = dx / len;
+// function drawGradientLine(x1, y1, x2, y2, colors, thickness) {
+//   let steps = 50;
+//   let dx = x2 - x1;
+//   let dy = y2 - y1;
+//   let len = dist(x1, y1, x2, y2);
+//   let nx = -dy / len;
+//   let ny = dx / len;
 
-  for (let i = -steps; i <= steps; i++) {
-    let distFromCenter = map(abs(i), 0, steps, 0, 1);
-    let colorIndex = distFromCenter * (colors.length - 1);
-    let low = floor(colorIndex);
-    let high = ceil(colorIndex);
-    let amt = colorIndex - low;
-    let col = lerpColor(colors[low], colors[high], amt);
-    stroke(col);
-    strokeWeight(1);
+//   for (let i = 0; i <= steps; i++) {
+//     const offsets = i === 0 ? [0] : [-i, i];
 
-    let offset = (i * thickness) / steps;
-    line(
-      x1 + nx * offset,
-      y1 + ny * offset,
-      x2 + nx * offset,
-      y2 + ny * offset
-    );
-  }
-}
+//     for (let offsetIndex of offsets) {
+//       let distFromCenter = map(Math.abs(offsetIndex), 0, steps, 0, 1);
+//       let colorIndex = distFromCenter * (colors.length - 1);
+//       let low = floor(colorIndex);
+//       let high = ceil(colorIndex);
+//       let amt = colorIndex - low;
+//       let col = lerpColor(colors[low], colors[high], amt);
+
+//       stroke(col);
+//       strokeWeight(1); // or customize thickness if needed
+
+//       let offset = (offsetIndex * thickness) / steps;
+//       line(
+//         x1 + nx * offset,
+//         y1 + ny * offset,
+//         x2 + nx * offset,
+//         y2 + ny * offset
+//       );
+//     }
+//   }
+// }
+
 
 function setup() {
   createCanvas(1920 * scaleFactor, 1080 * scaleFactor); // now 3840x2160 for 4K
@@ -452,6 +492,8 @@ function setup() {
   const titleH = 10 * scaleFactor; // adjust top circle location by editing this
   const yTop = rectY + titleH + margin;
   const yBottom = rectY + rectH - margin;
+
+  //initiate blur effect
 
   for (let i = 0; i < ethnics.length; i++) {
     let x = rectX + margin + i * spacingTop;
@@ -478,7 +520,7 @@ function setup() {
   // 額外補上 2030，稍微往右擺一點
   const lastX = rectX + margin + (visibleYears.length - 1) * spacingBottom;
   bottomCircles.push({
-    x: lastX + spacingBottom * 0.8, // 你可以微調這個值讓 2030 的距離自然
+    x: lastX + spacingBottom * 1, // 你可以微調這個值讓 2030 的距離自然
     y: yBottom,
     year: 2050, // 或 2030，視你的命名
   });
@@ -880,10 +922,10 @@ function draw() {
     imageMode(CORNER);
     image(
       img,
-      rectX + 10 * scaleFactor,
+      rectX + 5 * scaleFactor,
       rectY - 80 * scaleFactor,
       800 * scaleFactor,
-      50 * scaleFactor
+      80 * scaleFactor
     );
   }
   // else if (currentPhaseKey && phaseTitles[currentPhaseKey]) {
@@ -959,21 +1001,6 @@ function draw() {
     }
   }
 
-  // let bgAlpha = 0;
-
-  // if (frameCounter >= phase6ClearStartFrame) {
-  //   const disappearInterval = 5;
-  //   const step = Math.floor(
-  //     (frameCounter - phase6ClearStartFrame) / disappearInterval
-  //   );
-  //   const maxIndex = topCircles.length - 1;
-  //   const fadeProgress = constrain(step*10 / maxIndex, 0, 1);
-  //   bgAlpha = lerp(0, 255, fadeProgress);
-
-  //   noStroke();
-  //   fill(255, bgAlpha);
-  //   rect(0, 0, width, height);
-  // }
 
   for (let i = 0; i < topCircles.length; i++) {
     const pt = topCircles[i];
@@ -1040,20 +1067,20 @@ function draw() {
       if (i >= maxIndex - step) continue;
     }
 
-    let alpha = 255;
+    let baseAlpha = 255;
     if (pt.year === 2050 && frameCounter >= phase6FinStartFrame) {
       const fadeProgress = constrain(
         (frameCounter - phase6FinStartFrame) / phase6FinFadeDuration,
         0,
         1
       );
-      alpha = lerp(255, 0, fadeProgress);
+      baseAlpha = lerp(255, 0, fadeProgress);
     }
 
-    fill(255, alpha);
+    fill(255, baseAlpha);
     noStroke();
     ellipse(pt.x, pt.y, 5 * scaleFactor);
-    fill(255, alpha);
+    fill(255, baseAlpha);
     textStyle(NORMAL);
     textFont("sans-serif");
     textAlign(CENTER, TOP);
@@ -1143,7 +1170,7 @@ function draw() {
         let y2 = lerp(y1, conn.top.y, progress);
 
         // === 新增：處理淡出 alpha ===
-        let alpha = 255;
+        let baseAlpha = 255;
         if (frameCounter >= phase5AnimatedFadeStart) {
           const fadeProgress = constrain(
             (frameCounter - phase5AnimatedFadeStart) /
@@ -1151,12 +1178,12 @@ function draw() {
             0,
             1
           );
-          alpha = lerp(255, 0, fadeProgress);
+          baseAlpha = lerp(255, 0, fadeProgress);
         }
 
         colorMode(RGB);
         const c = topColors[conn.topGroup];
-        stroke(red(c), green(c), blue(c), alpha);
+        stroke(red(c), green(c), blue(c), baseAlpha);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
@@ -1174,11 +1201,11 @@ function draw() {
       let x2 = lerp(x1, conn.top.x, progress);
       let y2 = lerp(y1, conn.top.y, progress);
 
-      let alpha = lerp(0, 255, progress); // 淡入透明度
+      let baseAlpha = lerp(0, 255, progress); // 淡入透明度
 
       colorMode(RGB);
       const c = topColors[conn.topGroup];
-      stroke(red(c), green(c), blue(c), alpha);
+      stroke(red(c), green(c), blue(c), baseAlpha);
       line(x1, y1, x2, y2);
       colorMode(HSL, 360, 100, 100);
       continue;
@@ -1201,14 +1228,14 @@ function draw() {
         const elapsed = frameCounter - conn.startFrame;
         if (elapsed > totalDuration) continue; // 🔹 超過顯示時間，直接不畫
 
-        let alpha = 255;
+        let baseAlpha = 255;
         if (elapsed < fadeInDuration) {
-          alpha = (elapsed / fadeInDuration) * 255; // 🔹 fade in
+          baseAlpha = (elapsed / fadeInDuration) * 255; // 🔹 fade in
         }
 
         colorMode(RGB);
         const c = topColors[conn.topGroup];
-        stroke(red(c), green(c), blue(c), alpha);
+        stroke(red(c), green(c), blue(c), baseAlpha);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
@@ -1228,8 +1255,8 @@ function draw() {
         let y2 = lerp(y1, conn.top.y, progress);
 
         // ==== Fading logic ===
-        let alpha = 255;
-        let alpha_mix = 200;
+        let baseAlpha = 255;
+        let mixAlpha =120;
         let weight = 0.9 * scaleFactor;
         if (elapsed >= fadeStart) {
           const fadeProgress = constrain(
@@ -1237,51 +1264,28 @@ function draw() {
             0,
             1
           );
-          alpha_mix = lerp(255, 60, fadeProgress); // alpha for phase 2
-          alpha = lerp(255, 120, fadeProgress);
+          baseAlpha = lerp(255, 120, fadeProgress);
+          mixAlpha =lerp(120, 20, fadeProgress);
+
         }
 
         if (conn.top.name === "Mixed Black") {
-          // Define your gradient color palette
-          const baseHexes = [
-            "#FF5347",
-            "#FF5F59",
-            "#FF6A6B",
-            "#FF767D",
-            "#FF818F",
-          ];
-          const alphaSteps = [40, 100, 255, 100, 40];
+          drawGlowLine(x1, y1, x2, y2, "#DE6F6F", mixAlpha, 2*scaleFactor);
 
-          let baseGradient = baseHexes.map((hex, idx) => {
-            let c = color(hex);
-            c.setAlpha(alphaSteps[idx]);
-            return c;
-          });
-
-          const fadeProgressMix = constrain(
-            (frameCounter - fadeStart) / fadeDuration,
-            0,
-            1
-          );
-          const fadeFactorMix = lerp(1, 0.4, fadeProgressMix); // or fade to 0.2, 0, etc.
-
-          let fadedGradientMix = baseGradient.map((col) => {
-            let a = col._getAlpha
-              ? col._getAlpha() * fadeFactorMix
-              : 255 * fadeFactorMix;
-            return color(red(col), green(col), blue(col), a);
-          });
-
-          drawGradientLine(x1, y1, x2, y2, fadedGradientMix, 3); // adjust thickness
+          // Main line pass (to main canvas)
+          colorMode(RGB);
+          stroke(222, 111, 111, baseAlpha); // crisp red core line
+          strokeWeight(weight);
+          line(x1, y1, x2, y2);
+          colorMode(HSL, 360, 100, 100);
         } else {
           colorMode(RGB);
           const c = conn.customColor ?? topColors[conn.topGroup];
-          stroke(red(c), green(c), blue(c), alpha);
+          stroke(red(c), green(c), blue(c), baseAlpha);
           strokeWeight(weight);
           line(x1, y1, x2, y2);
           colorMode(HSL, 360, 100, 100);
         }
-
         continue;
       }
 
@@ -1291,14 +1295,14 @@ function draw() {
 
         const elapsed = frameCounter - conn.startFrame;
 
-        let alpha = 255;
+        let baseAlpha = 255;
         if (elapsed > drawDuration) {
           const fadeProgress = constrain(
             (elapsed - drawDuration) / fadeDuration,
             0,
             1
           );
-          alpha = lerp(255, 120, fadeProgress); // alpha for island striaght line
+          baseAlpha = lerp(255, 120, fadeProgress); // alpha for island striaght line
           // if (fadeProgress === 1) continue;
         }
 
@@ -1311,19 +1315,19 @@ function draw() {
 
         colorMode(RGB);
         const c = topColors[conn.topGroup];
-        stroke(red(c), green(c), blue(c), alpha);
+        stroke(red(c), green(c), blue(c), baseAlpha);
         line(x1, y1, x2, y2);
         colorMode(HSL, 360, 100, 100);
         continue;
       }
 
-      let alpha = 255;
+      let baseAlpha = 255;
       const isAsian = asianGroups.has(conn.top.name);
       const isMixedBlack = conn.top.name === "Mixed Black";
 
       // 🔽 phase 1 fade-in alpha
       if (conn.phase === 1) {
-        alpha = progress * 255;
+        baseAlpha = progress * 255;
       }
 
       if (
@@ -1331,18 +1335,18 @@ function draw() {
         fadedYears.has(conn.bottom.year) &&
         (isAsian || isMixedBlack)
       ) {
-        alpha = 150;
+        baseAlpha = 150;
       } else if (
         conn.phase === 2 &&
         isAsian &&
         mixedBlackDrawnYears.has(conn.bottom.year)
       ) {
-        alpha = 150;
+        baseAlpha = 150;
       }
 
       colorMode(RGB);
       const c = topColors[conn.topGroup];
-      stroke(red(c), green(c), blue(c), alpha);
+      stroke(red(c), green(c), blue(c), baseAlpha);
       line(x1, y1, x2, y2);
       colorMode(HSL, 360, 100, 100);
     }
@@ -1370,14 +1374,14 @@ function draw() {
 
         const elapsed = frameCounter - conn.startFrame;
         const fadeStart = drawDuration + fadeDelay;
-        let alpha = 255;
+        let baseAlpha = 255;
         if (elapsed > fadeStart) {
           const fadeProgress = constrain(
             (elapsed - drawDuration) / fadeDuration,
             0,
             1
           );
-          alpha = lerp(255, 100, fadeProgress); // alpha for curve
+          baseAlpha = lerp(255, 100, fadeProgress); // alpha for curve
           // if (fadeProgress === 1) continue;
         }
 
@@ -1395,7 +1399,7 @@ function draw() {
 
         colorMode(RGB);
         const c = conn.lineColor ?? color(0);
-        stroke(red(c), green(c), blue(c), alpha);
+        stroke(red(c), green(c), blue(c), baseAlpha);
         noFill();
         const steps = 30;
         for (let i = 0; i < steps * progress; i++) {
@@ -1499,18 +1503,18 @@ function draw() {
     const centerX = rectX + rectW / 2;
     const centerY = rectY + rectH / 2;
   
-    let alpha = 255;
+    let baseAlpha = 255;
     const localFrame = frameCounter - finStartFrame;
   
     if (localFrame < finFadeInDuration) {
       // Fade in
-      alpha = map(localFrame, 0, finFadeInDuration, 0, 255);
+      baseAlpha = map(localFrame, 0, finFadeInDuration, 0, 255);
     } else if (localFrame < finFadeInDuration + finHoldDuration) {
       // Hold
-      alpha = 255;
+      baseAlpha = 255;
     } else {
       // Fade out
-      alpha = map(
+      baseAlpha = map(
         localFrame,
         finFadeInDuration + finHoldDuration,
         finTotalDuration,
@@ -1519,7 +1523,7 @@ function draw() {
       );
     }
   
-    fill(255, alpha);
+    fill(255, baseAlpha);
     noStroke();
     textAlign(CENTER, CENTER);
     textSize(48 * scaleFactor);
